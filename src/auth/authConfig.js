@@ -1,0 +1,22 @@
+const tenantId = import.meta.env.VITE_ENTRA_TENANT_ID;
+const spaClientId = import.meta.env.VITE_SPA_CLIENT_ID;
+const apiClientId = import.meta.env.VITE_API_CLIENT_ID;
+
+// Mientras falten los IDs de Entra ID la app funciona en "modo local" (sin login real)
+export const isEntraConfigured = Boolean(tenantId && spaClientId && apiClientId);
+
+export const msalConfig = {
+  auth: {
+    clientId: spaClientId,
+    authority: `https://login.microsoftonline.com/${tenantId}`,
+    redirectUri: `${window.location.origin}/redirect.html`,
+    postLogoutRedirectUri: window.location.origin,
+  },
+  cache: {
+    cacheLocation: 'sessionStorage',
+  },
+};
+
+export const tokenRequest = {
+  scopes: [`api://${apiClientId}/access_as_user`],
+};

@@ -7,7 +7,7 @@ import OrderForm from './components/OrderForm';
 
 const EMPTY_FILTERS = { status: '', from: '', to: '' };
 
-export default function App() {
+export default function App({ session }) {
   const [orders, setOrders] = useState([]);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [selected, setSelected] = useState(null);
@@ -75,7 +75,19 @@ export default function App() {
         <div className="brand">
           Talleres360 <span>Órdenes de trabajo</span>
         </div>
-        <button className="btn primary" onClick={() => setFormMode('create')}>Nueva orden</button>
+        <div className="topbar-actions">
+          <button className="btn primary" onClick={() => setFormMode('create')}>Nueva orden</button>
+          <div className="user">
+            <span className="user-name">
+              {session.name}
+              {session.mode === 'local' && <span className="tag">dev</span>}
+            </span>
+            <span className="user-mail">{session.username}</span>
+          </div>
+          <button className="btn ghost" onClick={() => session.logout().catch((e) => setError(e.message))}>
+            Cerrar sesión
+          </button>
+        </div>
       </header>
 
       {error && (

@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <!-- Puente de retorno del popup de MSAL 5: devuelve la respuesta de Entra ID a la ventana principal -->
+  <script type="module">
+    import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+    broadcastResponseToMainFrame().catch(console.error);
+  </script>
+</body>
+</html>
