@@ -4,6 +4,7 @@ import OrderFilters from './components/OrderFilters';
 import OrderList from './components/OrderList';
 import OrderDetail from './components/OrderDetail';
 import OrderForm from './components/OrderForm';
+import { permissionsFor } from './auth/roles';
 
 const EMPTY_FILTERS = { status: '', from: '', to: '' };
 
@@ -14,6 +15,7 @@ export default function App({ session }) {
   const [formMode, setFormMode] = useState(null); // null | 'create' | 'edit'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { canWrite, canDelete } = permissionsFor(session.roles);
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
@@ -76,13 +78,15 @@ export default function App({ session }) {
           Talleres360 <span>Órdenes de trabajo</span>
         </div>
         <div className="topbar-actions">
-          <button className="btn primary" onClick={() => setFormMode('create')}>Nueva orden</button>
+          {canWrite && <button className="btn primary" onClick={() => setFormMode('create')}>Nueva orden</button>}
           <div className="user">
             <span className="user-name">
               {session.name}
               {session.mode === 'local' && <span className="tag">dev</span>}
             </span>
-            <span className="user-mail">{session.username}</span>
+            <span className="user-mail">
+              {session.username} · {session.roles.length ? session.roles.join(', ') : 'sin rol'}
+            </span>
           </div>
           <button className="btn ghost" onClick={() => session.logout().catch((e) => setError(e.message))}>
             Cerrar sesión
@@ -114,6 +118,8 @@ export default function App({ session }) {
           ) : selected ? (
             <OrderDetail
               order={selected}
+              canWrite={canWrite}
+              canDelete={canDelete}
               onChangeStatus={handleChangeStatus}
               onEdit={() => setFormMode('edit')}
               onDelete={handleDelete}

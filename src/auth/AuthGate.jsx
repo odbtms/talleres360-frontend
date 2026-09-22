@@ -4,6 +4,7 @@ import { InteractionStatus } from '@azure/msal-browser';
 import { isEntraConfigured, tokenRequest } from './authConfig';
 import { obtenerToken } from './token';
 import { setTokenProvider } from '../api/http';
+import { rolesFromToken } from './roles';
 import LoginPage from './LoginPage';
 
 const errorMessage = (error) => (error instanceof Error ? error.message : String(error));
@@ -13,17 +14,27 @@ function MsalAuthGate({ children }) {
   const { instance, accounts, inProgress } = useMsal();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [tokenReady, setTokenReady] = useState(false);
+  const [roles, setRoles] = useState(null); // null = token aun no listo
   const account = accounts[0];
 
   useEffect(() => {
     if (!account) {
-      setTokenReady(false);
+      setRoles(null);
       return undefined;
     }
+    let active = true;
     setTokenProvider(async () => (await obtenerToken(instance, account)).accessToken);
-    setTokenReady(true);
-    return () => setTokenProvider(async () => null);
+    obtenerToken(instance, account)
+      .then((result) => active && setRoles(rolesFromToken(result.accessToken)))
+      .catch((e) => {
+        if (!active) return;
+        setError(errorMessage(e));
+        setRoles([]);
+      });
+    return () => {
+      active = false;
+      setTokenProvider(async () => null);
+    };
   }, [instance, account]);
 
   async function login() {
@@ -42,11 +53,12 @@ function MsalAuthGate({ children }) {
     return <LoginPage onLogin={login} busy={busy || inProgress !== InteractionStatus.None} error={error} />;
   }
   // Se espera a registrar el token antes de montar la app, para que la primera llamada ya lo lleve
-  if (!tokenReady) return null;
+  if (roles === null) return null;
 
   return children({
     name: account.name || account.username,
     username: account.username,
+    roles,
     mode: 'entra',
     logout: () => instance.logoutPopup({ account }),
   });
@@ -81,6 +93,7 @@ function LocalAuthGate({ children }) {
   return children({
     name: 'Modo local',
     username: 'sin autenticación',
+    roles: ['Admin'],
     mode: 'local',
     logout: async () => setSession(false),
   });

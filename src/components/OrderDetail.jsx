@@ -2,8 +2,9 @@ import StatusBadge from './StatusBadge';
 import { NEXT_STATUS, STATUS_LABELS } from '../constants/orderStatus';
 import { formatDate, formatMoney } from '../utils/format';
 
-export default function OrderDetail({ order, onChangeStatus, onEdit, onDelete }) {
-  const nextStatuses = NEXT_STATUS[order.status] ?? [];
+export default function OrderDetail({ order, canWrite, canDelete, onChangeStatus, onEdit, onDelete }) {
+  const nextStatuses = canWrite ? NEXT_STATUS[order.status] ?? [] : [];
+  const canEdit = canWrite && order.status === 'RECIBIDA';
 
   return (
     <div className="detail">
@@ -67,10 +68,12 @@ export default function OrderDetail({ order, onChangeStatus, onEdit, onDelete })
         </>
       )}
 
-      <div className="actions footer">
-        {order.status === 'RECIBIDA' && <button className="btn ghost" onClick={onEdit}>Editar</button>}
-        <button className="btn danger-ghost" onClick={onDelete}>Eliminar</button>
-      </div>
+      {(canEdit || canDelete) && (
+        <div className="actions footer">
+          {canEdit && <button className="btn ghost" onClick={onEdit}>Editar</button>}
+          {canDelete && <button className="btn danger-ghost" onClick={onDelete}>Eliminar</button>}
+        </div>
+      )}
     </div>
   );
 }
