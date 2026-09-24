@@ -4,8 +4,10 @@ import OrderFilters from './components/OrderFilters';
 import OrderList from './components/OrderList';
 import OrderDetail from './components/OrderDetail';
 import OrderForm from './components/OrderForm';
+import TechnicalOrderForm from './components/TechnicalOrderForm';
+import ProductsPage from './components/ProductsPage';
 import { permissionsFor } from './auth/roles';
-import type { Order, OrderFilters as OrderFiltersValue, OrderPayload, OrderStatus, Session } from './types';
+import type { Order, OrderFilters as OrderFiltersValue, OrderPayload, OrderStatus, Session, TechnicalUpdatePayload } from './types';
 
 const EMPTY_FILTERS: OrderFiltersValue = { status: '', from: '', to: '' };
 
@@ -19,10 +21,11 @@ export default function App({ session }: AppProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [selected, setSelected] = useState<Order | null>(null);
-  const [formMode, setFormMode] = useState<'create' | 'edit' | null>(null);
+  const [formMode, setFormMode] = useState<'create' | 'technical' | null>(null);
+  const [view, setView] = useState<'orders' | 'products'>('orders');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { canWrite, canDelete } = permissionsFor(session.roles);
+  const { canWrite, canCreate, canDelete } = permissionsFor(session.roles);
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
@@ -53,13 +56,16 @@ export default function App({ session }: AppProps) {
   }
 
   async function handleSave(payload: OrderPayload) {
-    const saved = await run(() =>
-      formMode === 'edit' ? ordersApi.update(selected!.id, payload) : ordersApi.create(payload),
-    );
+    const saved = await run(() => ordersApi.create(payload));
     if (saved) {
       setSelected(saved);
       setFormMode(null);
     }
+  }
+
+  async function handleTechnicalSave(payload: TechnicalUpdatePayload) {
+    const saved = await run(() => ordersApi.updateTechnical(selected!.id, payload));
+    if (saved) { setSelected(saved); setFormMode(null); }
   }
 
   async function handleChangeStatus(status: OrderStatus) {
@@ -85,7 +91,8 @@ export default function App({ session }: AppProps) {
           Talleres360 <span>Órdenes de trabajo</span>
         </div>
         <div className="topbar-actions">
-          {canWrite && <button className="btn primary" onClick={() => setFormMode('create')}>Nueva orden</button>}
+          {session.roles.includes('Admin') && <button className="btn ghost" onClick={() => { setView(view === 'orders' ? 'products' : 'orders'); setFormMode(null); }}>{view === 'orders' ? 'Productos' : 'Órdenes'}</button>}
+          {canCreate && <button className="btn primary" onClick={() => setFormMode('create')}>Nueva orden</button>}
           <div className="user">
             <span className="user-name">
               {session.name}
@@ -107,34 +114,36 @@ export default function App({ session }: AppProps) {
         </div>
       )}
 
-      <main className="layout">
+      {view === 'products' ? <ProductsPage /> : <main className="layout">
         <section className="panel">
           <OrderFilters value={filters} onChange={setFilters} onReset={() => setFilters(EMPTY_FILTERS)} />
           <OrderList orders={orders} loading={loading} selectedId={selected?.id} onSelect={selectOrder} />
         </section>
 
         <aside className="panel side">
-          {formMode ? (
+          {formMode === 'create' ? (
             <OrderForm
-              key={formMode === 'edit' ? `edit-${selected!.id}` : 'create'}
-              initial={formMode === 'edit' ? selected : null}
+              key="create"
+              initial={null}
               onSubmit={handleSave}
               onCancel={() => setFormMode(null)}
             />
+          ) : formMode === 'technical' && selected ? (
+            <TechnicalOrderForm order={selected} onSubmit={handleTechnicalSave} onCancel={() => setFormMode(null)} />
           ) : selected ? (
             <OrderDetail
               order={selected}
               canWrite={canWrite}
               canDelete={canDelete}
               onChangeStatus={handleChangeStatus}
-              onEdit={() => setFormMode('edit')}
+              onEdit={() => setFormMode('technical')}
               onDelete={handleDelete}
             />
           ) : (
             <p className="empty">Selecciona una orden para ver el detalle o crea una nueva.</p>
           )}
         </aside>
-      </main>
+      </main>}
     </div>
   );
 }

@@ -1,21 +1,16 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { formatMoney } from '../utils/format';
 import type { Order, OrderPayload } from '../types';
-
-interface FormItem {
-  productId: number | string;
-  quantity: number | string;
-  unitPrice: number | string;
-}
+import { formatPlateInput, formatRutInput, isValidRut } from '../features/scheduling/utils/validation';
 
 interface OrderFormState {
   workshopId: number | string;
   customerName: string;
   customerEmail: string;
+  customerRut: string;
+  customerPhone: string;
   vehiclePlate: string;
   vehicleModel: string;
   description: string;
-  items: FormItem[];
 }
 
 interface OrderFormProps {
@@ -24,48 +19,45 @@ interface OrderFormProps {
   onCancel: () => void;
 }
 
-const EMPTY_ITEM: FormItem = { productId: '', quantity: 1, unitPrice: '' };
-
 function toForm(order: Order | null): OrderFormState {
   if (!order) {
     return {
-      workshopId: 1, customerName: '', customerEmail: '', vehiclePlate: '',
-      vehicleModel: '', description: '', items: [{ ...EMPTY_ITEM }],
+      workshopId: 1, customerName: '', customerEmail: '', customerRut: '', customerPhone: '', vehiclePlate: '',
+      vehicleModel: '', description: '',
     };
   }
   return {
     workshopId: order.workshopId,
     customerName: order.customerName,
     customerEmail: order.customerEmail,
+    customerRut: order.customerRut ?? '',
+    customerPhone: order.customerPhone ?? '',
     vehiclePlate: order.vehiclePlate,
     vehicleModel: order.vehicleModel ?? '',
     description: order.description ?? '',
-    items: order.items.map(({ productId, quantity, unitPrice }) => ({ productId, quantity, unitPrice })),
   };
 }
 
 export default function OrderForm({ initial, onSubmit, onCancel }: OrderFormProps) {
   const [form, setForm] = useState(() => toForm(initial));
   const [saving, setSaving] = useState(false);
+  const [validationError, setValidationError] = useState('');
 
-  const set = (field: Exclude<keyof OrderFormState, 'items'>) =>
+  const set = (field: keyof OrderFormState) =>
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm({ ...form, [field]: e.target.value });
-  const setItem = (index: number, field: keyof FormItem, value: string) =>
-    setForm({ ...form, items: form.items.map((item, i) => (i === index ? { ...item, [field]: value } : item)) });
-  const addItem = () => setForm({ ...form, items: [...form.items, { ...EMPTY_ITEM }] });
-  const removeItem = (index: number) => setForm({ ...form, items: form.items.filter((_, i) => i !== index) });
-
-  const total = form.items.reduce((sum, i) => sum + Number(i.quantity || 0) * Number(i.unitPrice || 0), 0);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setValidationError('');
+    if (!isValidRut(form.customerRut)) {
+      setValidationError('El RUT no es válido según Módulo 11.');
+      return;
+    }
     setSaving(true);
     await onSubmit({
       ...form,
       workshopId: Number(form.workshopId),
-      items: form.items
-        .filter((i) => i.productId !== '')
-        .map((i) => ({ productId: Number(i.productId), quantity: Number(i.quantity), unitPrice: Number(i.unitPrice) })),
+      items: [],
     });
     setSaving(false);
   }
@@ -73,34 +65,20 @@ export default function OrderForm({ initial, onSubmit, onCancel }: OrderFormProp
   return (
     <form className="form" onSubmit={handleSubmit}>
       <h2>{initial ? `Editar orden #${initial.id}` : 'Nueva orden'}</h2>
+      {validationError && <p className="field-error" role="alert">{validationError}</p>}
 
       <div className="grid">
-        <label>Cliente<input required maxLength={120} value={form.customerName} onChange={set('customerName')} /></label>
+        <label>Cliente<input required minLength={2} maxLength={120} value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value.replace(/[^\p{L} '-]/gu, '').slice(0, 120) })} /></label>
         <label>Email<input required type="email" maxLength={150} value={form.customerEmail} onChange={set('customerEmail')} /></label>
-        <label>Patente<input required maxLength={10} value={form.vehiclePlate} onChange={set('vehiclePlate')} /></label>
-        <label>Modelo<input maxLength={120} value={form.vehicleModel} onChange={set('vehicleModel')} /></label>
-        <label>Taller (ID)<input required type="number" min={1} value={form.workshopId} onChange={set('workshopId')} /></label>
+        <label>RUT<input required maxLength={12} value={form.customerRut} onChange={(e) => setForm({ ...form, customerRut: formatRutInput(e.target.value) })} placeholder="12.345.678-5" /></label>
+        <label>Teléfono (+56 9)<input required inputMode="numeric" pattern="[0-9]{8}" maxLength={8} value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value.replace(/\D/g, '').slice(0, 8) })} placeholder="12345678" /></label>
+        <label>Patente<input required maxLength={8} value={form.vehiclePlate} onChange={(e) => setForm({ ...form, vehiclePlate: formatPlateInput(e.target.value) })} placeholder="HD-JK-17" /></label>
+        <label>Modelo<input maxLength={120} value={form.vehicleModel} onChange={(e) => setForm({ ...form, vehicleModel: e.target.value.replace(/[^\p{L}\p{N} ]/gu, '').slice(0, 120) })} /></label>
+        <label>Taller (ID)<input required type="number" min={1} max={20} value={form.workshopId} onChange={set('workshopId')} /></label>
       </div>
-      <label>Trabajo a realizar<textarea rows={3} maxLength={1000} value={form.description} onChange={set('description')} /></label>
+      <label>Trabajo a realizar<textarea required minLength={10} rows={3} maxLength={1000} value={form.description} onChange={set('description')} /></label>
 
-      <h3>Repuestos / servicios</h3>
-      {form.items.map((item, index) => (
-        <div className="item-row" key={index}>
-          <label>Producto (ID)
-            <input type="number" min={1} value={item.productId} onChange={(e) => setItem(index, 'productId', e.target.value)} />
-          </label>
-          <label>Cant.
-            <input type="number" min={1} required={item.productId !== ''} value={item.quantity} onChange={(e) => setItem(index, 'quantity', e.target.value)} />
-          </label>
-          <label>Precio
-            <input type="number" min={0} required={item.productId !== ''} value={item.unitPrice} onChange={(e) => setItem(index, 'unitPrice', e.target.value)} />
-          </label>
-          <button type="button" className="btn icon" aria-label="Quitar ítem" onClick={() => removeItem(index)}>×</button>
-        </div>
-      ))}
-      <button type="button" className="btn ghost small" onClick={addItem}>+ Agregar ítem</button>
-
-      <p className="form-total">Total estimado: <strong>{formatMoney(total)}</strong></p>
+      <p className="muted">Los repuestos y servicios se asignan desde el catálogo después de aceptar la solicitud.</p>
 
       <div className="actions footer">
         <button type="button" className="btn ghost" onClick={onCancel}>Cancelar</button>

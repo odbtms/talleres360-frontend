@@ -16,6 +16,7 @@ const serviceLabel = (order: Order) => {
 
 const workshopLabel = (workshopId: number) =>
   WORKSHOPS.find((workshop) => workshop.id === workshopId)?.name ?? `Taller #${workshopId}`;
+const regionLabel = (region?: Order['regionId']) => region === 'biobio' ? 'Biobío' : region === 'maule' ? 'Maule' : region === 'araucania' ? 'La Araucanía' : 'No informada';
 
 export default function MyReviewsPage({ session }: MyReviewsPageProps) {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -70,10 +71,13 @@ export default function MyReviewsPage({ session }: MyReviewsPageProps) {
                     <div className="review-card__detail">
                       <dl>
                         <dt>Vehículo</dt><dd>{order.vehiclePlate} · {order.vehicleModel || 'Modelo no informado'}</dd>
-                        <dt>Descripción</dt><dd>{order.description || 'Sin descripción'}</dd>
+                        <dt>Tipo de revisión</dt><dd>{serviceLabel(order)}</dd>
+                        <dt>Región</dt><dd>{regionLabel(order.regionId)}</dd>
+                        <dt>Motivo</dt><dd>{order.description || 'Sin descripción'}</dd>
                         <dt>Taller</dt><dd>{workshopLabel(order.workshopId)}</dd>
                         <dt>Solicitada</dt><dd>{formatDate(order.createdAt)}</dd>
                         <dt>Total</dt><dd>{formatMoney(order.total)}</dd>
+                        <dt>Entrega estimada</dt><dd>{formatDate(order.estimatedDeliveryDate)}</dd>
                       </dl>
                     </div>
                   )}

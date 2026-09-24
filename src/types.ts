@@ -11,6 +11,7 @@ export type AppRole = 'Admin' | 'Operador' | 'Cliente';
 export interface OrderItem {
   id: number;
   productId: number;
+  description?: string | null;
   quantity: number;
   unitPrice: number;
   subtotal: number;
@@ -26,6 +27,8 @@ export interface OrderPayload {
   workshopId: number;
   customerName: string;
   customerEmail: string;
+  customerRut?: string;
+  customerPhone?: string;
   vehiclePlate: string;
   vehicleModel: string;
   description: string;
@@ -43,6 +46,11 @@ export interface Order {
   vehicleModel: string | null;
   vehicleYear?: number | null;
   description: string | null;
+  diagnosis?: string | null;
+  workPerformed?: string | null;
+  laborCost?: number | null;
+  estimatedDeliveryDate?: string | null;
+  technicalUpdatedAt?: string | null;
   status: OrderStatus;
   items: OrderItem[];
   total: number;
@@ -54,6 +62,16 @@ export interface Order {
   regionId?: 'biobio' | 'maule' | 'araucania' | null;
   appointmentDate?: string | null;
 }
+
+export interface TechnicalUpdatePayload {
+  diagnosis: string;
+  workPerformed: string;
+  laborCost: number;
+  estimatedDeliveryDate: string;
+  items: Array<{ productId: number; quantity: number }>;
+}
+
+export interface Product { id: number; name: string; stock: number; price: number; available: boolean; }
 
 export interface OrderFilters {
   status: string;

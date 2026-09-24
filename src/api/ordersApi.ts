@@ -1,5 +1,5 @@
 import { request } from './http';
-import type { Order, OrderFilters, OrderPayload, OrderStatus } from '../types';
+import type { Order, OrderFilters, OrderPayload, OrderStatus, TechnicalUpdatePayload } from '../types';
 
 function toQuery({ status = '', from = '', to = '' }: Partial<OrderFilters>) {
   const params = new URLSearchParams();
@@ -17,5 +17,7 @@ export const ordersApi = {
   update: (id: number, order: OrderPayload) => request<Order>(`/api/orders/${id}`, { method: 'PUT', body: order }),
   changeStatus: (id: number, status: OrderStatus) =>
     request<Order>(`/api/orders/${id}/status`, { method: 'PUT', body: { status } }),
+  updateTechnical: (id: number, payload: TechnicalUpdatePayload) =>
+    request<Order>(`/api/orders/${id}/technical`, { method: 'PUT', body: payload }),
   remove: (id: number) => request<null>(`/api/orders/${id}`, { method: 'DELETE' }),
 };
