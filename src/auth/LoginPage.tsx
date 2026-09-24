@@ -13,8 +13,7 @@ export default function LoginPage({
   onLogin,
   busy = false,
   error = '',
-  localMode = false,
-  onLocalLogin,
+  configurationMissing = false,
 }: LoginPageProps) {
   return (
     <div className="login-screen">
@@ -22,20 +21,19 @@ export default function LoginPage({
         <div className="login-brand">Talleres360</div>
         <p className="login-subtitle">Gestión de órdenes de trabajo</p>
 
-        <button className="btn ms-btn" onClick={onLogin} disabled={busy || localMode}>
+        <button className="btn ms-btn" onClick={onLogin} disabled={busy || configurationMissing}>
           <MicrosoftLogo />
           {busy ? 'Conectando…' : 'Iniciar sesión con Microsoft'}
         </button>
 
         {error && <p className="login-error" role="alert">{error}</p>}
 
-        {localMode && (
+        {configurationMissing && (
           <div className="login-notice">
             <p>
               <strong>Entra ID aún no está configurado.</strong> Completa <code>VITE_ENTRA_TENANT_ID</code>,{' '}
               <code>VITE_SPA_CLIENT_ID</code> y <code>VITE_API_CLIENT_ID</code> en <code>.env.local</code> y reinicia Vite.
             </p>
-            <button className="btn ghost" onClick={onLocalLogin}>Entrar en modo local (solo desarrollo)</button>
           </div>
         )}
 
@@ -48,7 +46,6 @@ interface LoginPageProps {
   onLogin?: () => void | Promise<void>;
   busy?: boolean;
   error?: string;
-  localMode?: boolean;
-  onLocalLogin?: () => void;
+  configurationMissing?: boolean;
 }
 

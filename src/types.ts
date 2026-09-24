@@ -6,6 +6,8 @@ export type OrderStatus =
   | 'ENTREGADA'
   | 'CANCELADA';
 
+export type AppRole = 'Admin' | 'Operador' | 'Cliente';
+
 export interface OrderItem {
   id: number;
   productId: number;
@@ -57,6 +59,5 @@ export interface Session {
   name: string;
   username: string;
   roles: string[];
-  mode: 'entra' | 'local';
   logout: () => Promise<void>;
 }

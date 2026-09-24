@@ -64,46 +64,10 @@ function MsalAuthGate({ children }: AuthGateProps) {
     name: account.name || account.username,
     username: account.username,
     roles,
-    mode: 'entra',
     logout: () => instance.logoutPopup({ account }),
   });
 }
 
-const LOCAL_SESSION_KEY = 'talleres360.localSession';
-
-function readLocalSession() {
-  try {
-    return sessionStorage.getItem(LOCAL_SESSION_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-// Sin IDs de Entra ID: login simulado para poder seguir desarrollando
-function LocalAuthGate({ children }: AuthGateProps) {
-  const [active, setActive] = useState(readLocalSession);
-
-  function setSession(value: boolean) {
-    try {
-      if (value) sessionStorage.setItem(LOCAL_SESSION_KEY, '1');
-      else sessionStorage.removeItem(LOCAL_SESSION_KEY);
-    } catch {
-      // sessionStorage bloqueado: la sesion dura solo mientras la pagina este abierta
-    }
-    setActive(value);
-  }
-
-  if (!active) return <LoginPage localMode onLocalLogin={() => setSession(true)} />;
-
-  return children({
-    name: 'Modo local',
-    username: 'sin autenticación',
-    roles: ['Admin'],
-    mode: 'local',
-    logout: async () => setSession(false),
-  });
-}
-
 export default function AuthGate({ children }: AuthGateProps) {
-  return isEntraConfigured ? <MsalAuthGate>{children}</MsalAuthGate> : <LocalAuthGate>{children}</LocalAuthGate>;
+  return isEntraConfigured ? <MsalAuthGate>{children}</MsalAuthGate> : <LoginPage configurationMissing />;
 }

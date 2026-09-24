@@ -20,7 +20,7 @@ Después de cambiar `.env.local`, detener y volver a iniciar Vite.
 | `VITE_API_CLIENT_ID` | api-fullstack > Id. de aplicación (cliente) |
 | `VITE_API_BASE_URL` | Backend (hoy `http://localhost:8081`, luego AWS API Gateway) |
 
-**Modo local:** si faltan los IDs de Entra ID, la pantalla de login lo avisa y permite entrar sin autenticación (solo desarrollo). Con los IDs completos, el login con Microsoft es obligatorio.
+Si falta alguno de los IDs de Entra ID, la pantalla de login muestra un error de configuración y no permite entrar. El inicio de sesión con Microsoft es obligatorio.
 
 ## Estructura
 

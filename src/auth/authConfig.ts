@@ -2,7 +2,7 @@ const tenantId = import.meta.env.VITE_ENTRA_TENANT_ID;
 const spaClientId = import.meta.env.VITE_SPA_CLIENT_ID;
 const apiClientId = import.meta.env.VITE_API_CLIENT_ID;
 
-// Mientras falten los IDs de Entra ID la app funciona en "modo local" (sin login real)
+// Sin los tres IDs la aplicación muestra un error de configuración y no permite iniciar sesión.
 export const isEntraConfigured = Boolean(tenantId && spaClientId && apiClientId);
 
 export const msalConfig: Configuration = {

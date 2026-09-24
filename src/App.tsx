@@ -89,7 +89,6 @@ export default function App({ session }: AppProps) {
           <div className="user">
             <span className="user-name">
               {session.name}
-              {session.mode === 'local' && <span className="tag">dev</span>}
             </span>
             <span className="user-mail">
               {session.username} · {session.roles.length ? session.roles.join(', ') : 'sin rol'}
