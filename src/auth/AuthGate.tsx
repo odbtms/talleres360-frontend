@@ -5,7 +5,7 @@ import { isEntraConfigured, tokenRequest } from './authConfig';
 import { obtenerToken } from './token';
 import { setTokenProvider } from '../api/http';
 import { rolesFromToken } from './roles';
-import LoginPage from './LoginPage';
+import HomePage from '../features/home/pages/HomePage';
 import type { Session } from '../types';
 
 interface AuthGateProps {
@@ -43,19 +43,32 @@ function MsalAuthGate({ children }: AuthGateProps) {
   }, [instance, account]);
 
   async function login() {
+    if (busy || inProgress !== InteractionStatus.None) return;
+
     setBusy(true);
     setError('');
+    // El popup de MSAL puede tardar en notificar que fue cerrado. La interfaz
+    // recupera su etiqueta normal sin permitir otro intento mientras MSAL siga ocupado.
+    const visualTimeout = window.setTimeout(() => setBusy(false), 8000);
     try {
       await instance.loginPopup({ ...tokenRequest, prompt: 'select_account' });
-    } catch (e: unknown) {
-      setError(errorMessage(e));
+    } catch {
+      setError('No se pudo iniciar sesión. Inténtalo nuevamente.');
     } finally {
+      window.clearTimeout(visualTimeout);
       setBusy(false);
     }
   }
 
   if (!account) {
-    return <LoginPage onLogin={login} busy={busy || inProgress !== InteractionStatus.None} error={error} />;
+    return (
+      <HomePage
+        onLogin={login}
+        busy={busy}
+        loginDisabled={inProgress !== InteractionStatus.None && !busy}
+        error={error}
+      />
+    );
   }
   // Se espera a registrar el token antes de montar la app, para que la primera llamada ya lo lleve
   if (roles === null) return null;
@@ -69,5 +82,5 @@ function MsalAuthGate({ children }: AuthGateProps) {
 }
 
 export default function AuthGate({ children }: AuthGateProps) {
-  return isEntraConfigured ? <MsalAuthGate>{children}</MsalAuthGate> : <LoginPage configurationMissing />;
+  return isEntraConfigured ? <MsalAuthGate>{children}</MsalAuthGate> : <HomePage configurationMissing />;
 }
