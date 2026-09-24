@@ -9,7 +9,13 @@ function MicrosoftLogo() {
   );
 }
 
-export default function LoginPage({ onLogin, busy = false, error = '', localMode = false, onLocalLogin }) {
+export default function LoginPage({
+  onLogin,
+  busy = false,
+  error = '',
+  localMode = false,
+  onLocalLogin,
+}: LoginPageProps) {
   return (
     <div className="login-screen">
       <div className="login-card">
@@ -38,3 +44,11 @@ export default function LoginPage({ onLogin, busy = false, error = '', localMode
     </div>
   );
 }
+interface LoginPageProps {
+  onLogin?: () => void | Promise<void>;
+  busy?: boolean;
+  error?: string;
+  localMode?: boolean;
+  onLocalLogin?: () => void;
+}
+

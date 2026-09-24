@@ -1,6 +1,6 @@
 # Talleres360 — Frontend
 
-SPA en React + Vite para la gestión de órdenes de trabajo. Corre en local y consume el backend (`talleres360-backend`).
+SPA en React + TypeScript + Vite para la gestión de órdenes de trabajo. Corre en local y consume el backend (`talleres360-backend`).
 Login con Microsoft Entra ID usando MSAL 5 (popup + `redirect.html`), siguiendo el tutorial del curso.
 
 ## Correr
@@ -26,12 +26,12 @@ Después de cambiar `.env.local`, detener y volver a iniciar Vite.
 
 ```
 redirect.html            puente de retorno del popup de MSAL 5
-src/auth/authConfig.js   configuración MSAL (clientId, authority, redirectUri, scope)
-src/auth/token.js        acquireTokenSilent → fallback acquireTokenPopup
-src/auth/AuthGate.jsx    muestra el login o la app; registra el token en http.js
-src/auth/LoginPage.jsx   pantalla de login
-src/api/http.js          fetch base + header Authorization: Bearer
-src/api/ordersApi.js     llamadas a /api/orders
+src/auth/authConfig.ts   configuración MSAL (clientId, authority, redirectUri, scope)
+src/auth/token.ts        acquireTokenSilent → fallback acquireTokenPopup
+src/auth/AuthGate.tsx    muestra el login o la app; registra el token en http.ts
+src/auth/LoginPage.tsx   pantalla de login
+src/api/http.ts          fetch base + header Authorization: Bearer
+src/api/ordersApi.ts     llamadas a /api/orders
 src/components/          filtros, tabla, detalle, formulario
 ```
 

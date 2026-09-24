@@ -1,8 +1,25 @@
 import StatusBadge from './StatusBadge';
 import { NEXT_STATUS, STATUS_LABELS } from '../constants/orderStatus';
 import { formatDate, formatMoney } from '../utils/format';
+import type { Order, OrderStatus } from '../types';
 
-export default function OrderDetail({ order, canWrite, canDelete, onChangeStatus, onEdit, onDelete }) {
+interface OrderDetailProps {
+  order: Order;
+  canWrite: boolean;
+  canDelete: boolean;
+  onChangeStatus: (status: OrderStatus) => void | Promise<void>;
+  onEdit: () => void;
+  onDelete: () => void | Promise<void>;
+}
+
+export default function OrderDetail({
+  order,
+  canWrite,
+  canDelete,
+  onChangeStatus,
+  onEdit,
+  onDelete,
+}: OrderDetailProps) {
   const nextStatuses = canWrite ? NEXT_STATUS[order.status] ?? [] : [];
   const canEdit = canWrite && order.status === 'RECIBIDA';
 

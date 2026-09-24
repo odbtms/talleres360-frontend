@@ -1,9 +1,32 @@
-import { useState } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { formatMoney } from '../utils/format';
+import type { Order, OrderPayload } from '../types';
 
-const EMPTY_ITEM = { productId: '', quantity: 1, unitPrice: '' };
+interface FormItem {
+  productId: number | string;
+  quantity: number | string;
+  unitPrice: number | string;
+}
 
-function toForm(order) {
+interface OrderFormState {
+  workshopId: number | string;
+  customerName: string;
+  customerEmail: string;
+  vehiclePlate: string;
+  vehicleModel: string;
+  description: string;
+  items: FormItem[];
+}
+
+interface OrderFormProps {
+  initial: Order | null;
+  onSubmit: (payload: OrderPayload) => Promise<void>;
+  onCancel: () => void;
+}
+
+const EMPTY_ITEM: FormItem = { productId: '', quantity: 1, unitPrice: '' };
+
+function toForm(order: Order | null): OrderFormState {
   if (!order) {
     return {
       workshopId: 1, customerName: '', customerEmail: '', vehiclePlate: '',
@@ -21,19 +44,20 @@ function toForm(order) {
   };
 }
 
-export default function OrderForm({ initial, onSubmit, onCancel }) {
+export default function OrderForm({ initial, onSubmit, onCancel }: OrderFormProps) {
   const [form, setForm] = useState(() => toForm(initial));
   const [saving, setSaving] = useState(false);
 
-  const set = (field) => (e) => setForm({ ...form, [field]: e.target.value });
-  const setItem = (index, field, value) =>
+  const set = (field: Exclude<keyof OrderFormState, 'items'>) =>
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm({ ...form, [field]: e.target.value });
+  const setItem = (index: number, field: keyof FormItem, value: string) =>
     setForm({ ...form, items: form.items.map((item, i) => (i === index ? { ...item, [field]: value } : item)) });
   const addItem = () => setForm({ ...form, items: [...form.items, { ...EMPTY_ITEM }] });
-  const removeItem = (index) => setForm({ ...form, items: form.items.filter((_, i) => i !== index) });
+  const removeItem = (index: number) => setForm({ ...form, items: form.items.filter((_, i) => i !== index) });
 
   const total = form.items.reduce((sum, i) => sum + Number(i.quantity || 0) * Number(i.unitPrice || 0), 0);
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
     await onSubmit({

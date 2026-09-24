@@ -5,6 +5,7 @@ import { isEntraConfigured, msalConfig } from './auth/authConfig';
 import AuthGate from './auth/AuthGate';
 import App from './App';
 import './styles.css';
+import type { Session } from './types';
 
 // Como en el tutorial: no se llama a msal.initialize() a mano, MsalProvider se encarga
 const msal = isEntraConfigured ? new PublicClientApplication(msalConfig) : null;
@@ -14,6 +15,6 @@ if (!rootElement) {
   throw new Error('Root element not found');
 }
 
-const app = <AuthGate>{(session) => <App session={session} />}</AuthGate>;
+const app = <AuthGate>{(session: Session) => <App session={session} />}</AuthGate>;
 
 createRoot(rootElement).render(msal ? <MsalProvider instance={msal}>{app}</MsalProvider> : app);

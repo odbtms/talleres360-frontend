@@ -1,7 +1,15 @@
 import StatusBadge from './StatusBadge';
 import { formatDate, formatMoney } from '../utils/format';
+import type { Order } from '../types';
 
-export default function OrderList({ orders, loading, selectedId, onSelect }) {
+interface OrderListProps {
+  orders: Order[];
+  loading: boolean;
+  selectedId?: number;
+  onSelect: (order: Order) => void;
+}
+
+export default function OrderList({ orders, loading, selectedId, onSelect }: OrderListProps) {
   if (loading && orders.length === 0) return <p className="empty">Cargando órdenes…</p>;
   if (orders.length === 0) return <p className="empty">No hay órdenes con esos filtros.</p>;
 

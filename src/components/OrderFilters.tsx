@@ -1,7 +1,16 @@
+import type { ChangeEvent } from 'react';
 import { STATUS_LABELS } from '../constants/orderStatus';
+import type { OrderFilters as OrderFiltersValue } from '../types';
 
-export default function OrderFilters({ value, onChange, onReset }) {
-  const set = (field) => (e) => onChange({ ...value, [field]: e.target.value });
+interface OrderFiltersProps {
+  value: OrderFiltersValue;
+  onChange: (value: OrderFiltersValue) => void;
+  onReset: () => void;
+}
+
+export default function OrderFilters({ value, onChange, onReset }: OrderFiltersProps) {
+  const set = (field: keyof OrderFiltersValue) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    onChange({ ...value, [field]: e.target.value });
 
   return (
     <div className="filters">

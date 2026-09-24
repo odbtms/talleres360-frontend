@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
 import { isEntraConfigured, tokenRequest } from './authConfig';
@@ -6,15 +6,20 @@ import { obtenerToken } from './token';
 import { setTokenProvider } from '../api/http';
 import { rolesFromToken } from './roles';
 import LoginPage from './LoginPage';
+import type { Session } from '../types';
 
-const errorMessage = (error) => (error instanceof Error ? error.message : String(error));
+interface AuthGateProps {
+  children: (session: Session) => ReactNode;
+}
+
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 // Login real con Entra ID: sin cuenta muestra el login; con cuenta adjunta el token a cada request
-function MsalAuthGate({ children }) {
+function MsalAuthGate({ children }: AuthGateProps) {
   const { instance, accounts, inProgress } = useMsal();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [roles, setRoles] = useState(null); // null = token aun no listo
+  const [roles, setRoles] = useState<string[] | null>(null); // null = token aun no listo
   const account = accounts[0];
 
   useEffect(() => {
@@ -26,7 +31,7 @@ function MsalAuthGate({ children }) {
     setTokenProvider(async () => (await obtenerToken(instance, account)).accessToken);
     obtenerToken(instance, account)
       .then((result) => active && setRoles(rolesFromToken(result.accessToken)))
-      .catch((e) => {
+      .catch((e: unknown) => {
         if (!active) return;
         setError(errorMessage(e));
         setRoles([]);
@@ -42,7 +47,7 @@ function MsalAuthGate({ children }) {
     setError('');
     try {
       await instance.loginPopup({ ...tokenRequest, prompt: 'select_account' });
-    } catch (e) {
+    } catch (e: unknown) {
       setError(errorMessage(e));
     } finally {
       setBusy(false);
@@ -75,10 +80,10 @@ function readLocalSession() {
 }
 
 // Sin IDs de Entra ID: login simulado para poder seguir desarrollando
-function LocalAuthGate({ children }) {
+function LocalAuthGate({ children }: AuthGateProps) {
   const [active, setActive] = useState(readLocalSession);
 
-  function setSession(value) {
+  function setSession(value: boolean) {
     try {
       if (value) sessionStorage.setItem(LOCAL_SESSION_KEY, '1');
       else sessionStorage.removeItem(LOCAL_SESSION_KEY);
@@ -99,6 +104,6 @@ function LocalAuthGate({ children }) {
   });
 }
 
-export default function AuthGate({ children }) {
+export default function AuthGate({ children }: AuthGateProps) {
   return isEntraConfigured ? <MsalAuthGate>{children}</MsalAuthGate> : <LocalAuthGate>{children}</LocalAuthGate>;
 }
