@@ -13,7 +13,7 @@ export default function LoginButton({ onLogin, busy = false, disabled = false, c
       onClick={onLogin}
       disabled={busy || disabled}
     >
-      {busy ? 'Conectando…' : 'Login'}
+      {busy ? 'Conectando…' : 'Iniciar sesión'}
     </button>
   );
 }

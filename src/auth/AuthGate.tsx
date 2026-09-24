@@ -5,7 +5,10 @@ import { isEntraConfigured, tokenRequest } from './authConfig';
 import { obtenerToken } from './token';
 import { setTokenProvider } from '../api/http';
 import { rolesFromToken } from './roles';
-import HomePage from '../features/home/pages/HomePage';
+import PublicSite from '../features/home/PublicSite';
+import BookingPage from '../features/scheduling/pages/BookingPage';
+import type { ServiceType } from '../features/scheduling/types/scheduling';
+import ClientSite from '../features/client/ClientSite';
 import type { Session } from '../types';
 
 interface AuthGateProps {
@@ -52,6 +55,7 @@ function MsalAuthGate({ children }: AuthGateProps) {
     const visualTimeout = window.setTimeout(() => setBusy(false), 8000);
     try {
       await instance.loginPopup({ ...tokenRequest, prompt: 'select_account' });
+      window.history.replaceState(null, '', '/');
     } catch {
       setError('No se pudo iniciar sesión. Inténtalo nuevamente.');
     } finally {
@@ -62,7 +66,7 @@ function MsalAuthGate({ children }: AuthGateProps) {
 
   if (!account) {
     return (
-      <HomePage
+      <PublicSite
         onLogin={login}
         busy={busy}
         loginDisabled={inProgress !== InteractionStatus.None && !busy}
@@ -73,14 +77,26 @@ function MsalAuthGate({ children }: AuthGateProps) {
   // Se espera a registrar el token antes de montar la app, para que la primera llamada ya lo lleve
   if (roles === null) return null;
 
-  return children({
+  const session: Session = {
     name: account.name || account.username,
     username: account.username,
     roles,
     logout: () => instance.logoutPopup({ account }),
-  });
+  };
+
+  if (window.location.pathname.replace(/\/+$/, '') === '/agendamiento/solicitud') {
+    const requestedType = new URLSearchParams(window.location.search).get('tipo');
+    const serviceType: ServiceType = requestedType === 'diagnostics' ? 'diagnostics' : 'maintenance';
+    return <BookingPage session={session} serviceType={serviceType} />;
+  }
+
+  if (roles.includes('Cliente') && !roles.some((role) => role === 'Admin' || role === 'Operador')) {
+    return <ClientSite session={session} />;
+  }
+
+  return children(session);
 }
 
 export default function AuthGate({ children }: AuthGateProps) {
-  return isEntraConfigured ? <MsalAuthGate>{children}</MsalAuthGate> : <HomePage configurationMissing />;
+  return isEntraConfigured ? <MsalAuthGate>{children}</MsalAuthGate> : <PublicSite configurationMissing />;
 }

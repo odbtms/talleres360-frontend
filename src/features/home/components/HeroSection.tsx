@@ -9,9 +9,9 @@ export default function HeroSection() {
           segura y sin perder de vista ningún avance.
         </p>
         <div className="hero-actions">
-          <button className="btn public-secondary-button" type="button" aria-disabled="true">
+          <a className="btn public-secondary-button" href="/agendamiento">
             Agenda con nosotros
-          </button>
+          </a>
         </div>
         <div className="hero-trust" aria-label="Beneficios del servicio">
           <span>Atención confiable</span>

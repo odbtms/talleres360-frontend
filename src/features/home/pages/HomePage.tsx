@@ -1,14 +1,11 @@
 import HeroSection from '../components/HeroSection';
 import PublicHeader from '../components/PublicHeader';
 import ServiceHighlights from '../components/ServiceHighlights';
+import BrandLogo from '../components/BrandLogo';
+import type { PublicPageProps } from '../types/home';
+import type { Session } from '../../../types';
 
-interface HomePageProps {
-  onLogin?: () => void | Promise<void>;
-  busy?: boolean;
-  loginDisabled?: boolean;
-  error?: string;
-  configurationMissing?: boolean;
-}
+interface HomePageProps extends PublicPageProps { session?: Session; }
 
 export default function HomePage({
   onLogin,
@@ -16,10 +13,18 @@ export default function HomePage({
   loginDisabled = false,
   error = '',
   configurationMissing = false,
+  session,
 }: HomePageProps) {
   return (
     <div className="public-page">
-      <PublicHeader onLogin={onLogin} busy={busy} loginDisabled={configurationMissing || loginDisabled} />
+      <PublicHeader
+        onLogin={onLogin}
+        busy={busy}
+        loginDisabled={configurationMissing || loginDisabled}
+        accountName={session?.name}
+        onLogout={session?.logout}
+        showClientNavigation={Boolean(session)}
+      />
       {error && <div className="public-alert" role="alert">{error}</div>}
       {configurationMissing && (
         <div className="public-alert" role="alert">
@@ -41,7 +46,7 @@ export default function HomePage({
         </section>
       </main>
       <footer className="public-footer">
-        <span className="public-brand public-brand--footer"><span className="public-brand-mark">T</span>Talleres360</span>
+        <BrandLogo variant="footer" />
         <span>Gestión simple y transparente para tu vehículo.</span>
       </footer>
     </div>

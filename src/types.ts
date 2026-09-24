@@ -37,8 +37,11 @@ export interface Order {
   workshopId: number;
   customerName: string;
   customerEmail: string;
+  customerRut?: string | null;
+  customerPhone?: string | null;
   vehiclePlate: string;
   vehicleModel: string | null;
+  vehicleYear?: number | null;
   description: string | null;
   status: OrderStatus;
   items: OrderItem[];
@@ -47,6 +50,9 @@ export interface Order {
   updatedAt: string;
   acceptedAt: string | null;
   deliveredAt: string | null;
+  serviceType?: 'MAINTENANCE' | 'DIAGNOSTICS' | null;
+  regionId?: 'biobio' | 'maule' | 'araucania' | null;
+  appointmentDate?: string | null;
 }
 
 export interface OrderFilters {

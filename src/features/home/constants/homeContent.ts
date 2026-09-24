@@ -1,4 +1,6 @@
-import type { ServiceHighlight } from '../types/home';
+import maintenanceImageUrl from '../../../assets/images/mantenciones-arreglos.png';
+import diagnosticsImageUrl from '../../../assets/images/diagnostico.png';
+import type { SchedulingOption, ServiceHighlight } from '../types/home';
 
 export const SERVICE_HIGHLIGHTS: ServiceHighlight[] = [
   {
@@ -15,5 +17,20 @@ export const SERVICE_HIGHLIGHTS: ServiceHighlight[] = [
     title: 'Información segura',
     description: 'Accede con tu cuenta autorizada y mantén protegidos los datos asociados a cada servicio.',
     icon: 'shield',
+  },
+];
+
+export const SCHEDULING_OPTIONS: SchedulingOption[] = [
+  {
+    id: 'maintenance',
+    title: 'Mantenciones y arreglos',
+    description: 'Mantenciones preventivas, servicios programados y reparaciones para conservar tu vehículo en buenas condiciones.',
+    imageUrl: maintenanceImageUrl,
+  },
+  {
+    id: 'diagnostics',
+    title: 'Diagnósticos',
+    description: 'Una revisión especializada para identificar el origen de una falla antes de definir la reparación necesaria.',
+    imageUrl: diagnosticsImageUrl,
   },
 ];
