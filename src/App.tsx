@@ -6,6 +6,7 @@ import OrderDetail from './components/OrderDetail';
 import OrderForm from './components/OrderForm';
 import TechnicalOrderForm from './components/TechnicalOrderForm';
 import ProductsPage from './components/ProductsPage';
+import AdminDashboard from './components/AdminDashboard';
 import { permissionsFor } from './auth/roles';
 import type { Order, OrderFilters as OrderFiltersValue, OrderPayload, OrderStatus, Session, TechnicalUpdatePayload } from './types';
 
@@ -22,7 +23,7 @@ export default function App({ session }: AppProps) {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [selected, setSelected] = useState<Order | null>(null);
   const [formMode, setFormMode] = useState<'create' | 'technical' | null>(null);
-  const [view, setView] = useState<'orders' | 'products'>('orders');
+  const [view, setView] = useState<'dashboard' | 'orders' | 'products'>(session.roles.includes('Admin') ? 'dashboard' : 'orders');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { canWrite, canCreate, canDelete } = permissionsFor(session.roles);
@@ -69,7 +70,14 @@ export default function App({ session }: AppProps) {
   }
 
   async function handleChangeStatus(status: OrderStatus) {
-    const updated = await run(() => ordersApi.changeStatus(selected!.id, status));
+    let reason: string | undefined;
+    if (session.roles.includes('Admin')) {
+      const value = window.prompt('Motivo de la intervención administrativa (mínimo 10 caracteres):');
+      if (value === null) return;
+      reason = value.trim();
+      if (reason.length < 10) { setError('Explica el motivo de la intervención con al menos 10 caracteres.'); return; }
+    }
+    const updated = await run(() => ordersApi.changeStatus(selected!.id, status, reason));
     if (updated) setSelected(updated);
   }
 
@@ -91,8 +99,12 @@ export default function App({ session }: AppProps) {
           Talleres360 <span>Órdenes de trabajo</span>
         </div>
         <div className="topbar-actions">
-          {session.roles.includes('Admin') && <button className="btn ghost" onClick={() => { setView(view === 'orders' ? 'products' : 'orders'); setFormMode(null); }}>{view === 'orders' ? 'Productos' : 'Órdenes'}</button>}
-          {canCreate && <button className="btn primary" onClick={() => setFormMode('create')}>Nueva orden</button>}
+          {session.roles.includes('Admin') && <>
+            <button className="btn ghost" onClick={() => { setView('dashboard'); setFormMode(null); }}>Dashboard</button>
+            <button className="btn ghost" onClick={() => { setView('orders'); setFormMode(null); }}>Órdenes</button>
+            <button className="btn ghost" onClick={() => { setView('products'); setFormMode(null); }}>Productos</button>
+          </>}
+          {canCreate && <button className="btn primary" onClick={() => { setView('orders'); setFormMode('create'); }}>Nueva orden</button>}
           <div className="user">
             <span className="user-name">
               {session.name}
@@ -114,7 +126,8 @@ export default function App({ session }: AppProps) {
         </div>
       )}
 
-      {view === 'products' ? <ProductsPage /> : <main className="layout">
+      {view === 'dashboard' ? <AdminDashboard onOpenOrders={() => setView('orders')} onOpenProducts={() => setView('products')} />
+        : view === 'products' ? <ProductsPage /> : <main className="layout">
         <section className="panel">
           <OrderFilters value={filters} onChange={setFilters} onReset={() => setFilters(EMPTY_FILTERS)} />
           <OrderList orders={orders} loading={loading} selectedId={selected?.id} onSelect={selectOrder} />

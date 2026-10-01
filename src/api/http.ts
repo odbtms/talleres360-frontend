@@ -1,4 +1,4 @@
-const API_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081').replace(/\/$/, '');
+const API_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, '');
 
 // Punto de enganche para MSAL: cuando haya login, se registra una funcion que devuelve el access token.
 type TokenProvider = () => Promise<string | null>;

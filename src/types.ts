@@ -20,7 +20,6 @@ export interface OrderItem {
 export interface OrderItemInput {
   productId: number;
   quantity: number;
-  unitPrice: number;
 }
 
 export interface OrderPayload {
@@ -71,7 +70,8 @@ export interface TechnicalUpdatePayload {
   items: Array<{ productId: number; quantity: number }>;
 }
 
-export interface Product { id: number; name: string; stock: number; price: number; available: boolean; }
+export interface Product { id: number; sku: string; name: string; stock: number; price: number; active: boolean; available: boolean; }
+export interface ProductInput { sku: string; name: string; stock: number; price: number; active: boolean; }
 
 export interface OrderFilters {
   status: string;

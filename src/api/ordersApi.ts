@@ -15,8 +15,8 @@ export const ordersApi = {
   get: (id: number) => request<Order>(`/api/orders/${id}`),
   create: (order: OrderPayload) => request<Order>('/api/orders', { method: 'POST', body: order }),
   update: (id: number, order: OrderPayload) => request<Order>(`/api/orders/${id}`, { method: 'PUT', body: order }),
-  changeStatus: (id: number, status: OrderStatus) =>
-    request<Order>(`/api/orders/${id}/status`, { method: 'PUT', body: { status } }),
+  changeStatus: (id: number, status: OrderStatus, reason?: string) =>
+    request<Order>(`/api/orders/${id}/status`, { method: 'PUT', body: { status, reason } }),
   updateTechnical: (id: number, payload: TechnicalUpdatePayload) =>
     request<Order>(`/api/orders/${id}/technical`, { method: 'PUT', body: payload }),
   remove: (id: number) => request<null>(`/api/orders/${id}`, { method: 'DELETE' }),
