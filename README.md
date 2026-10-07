@@ -1,99 +1,170 @@
-# Talleres360 — frontend
+# Talleres360 — Frontend
 
-Cliente React + TypeScript + Vite. Tiene portada pública, selección de mantenciones/arreglos o diagnóstico, agenda autenticada de cinco pasos, historial del cliente, y panel de órdenes para Operador/Admin. El login usa Microsoft Entra ID con MSAL; la API se consume **siempre a través del BFF**, directamente en local o a través de API Gateway en AWS.
+Aplicación React + TypeScript para solicitar atención de vehículos y gestionar órdenes, repuestos y ventas. Incluye sitio público, agendamiento autenticado, historial del cliente y paneles por rol. Microsoft Entra ID proporciona el inicio de sesión; todas las llamadas a servicios pasan por el BFF.
+
+Rama de trabajo: **`fronted`**. [Repositorio](https://github.com/odbtms/talleres360-frontend).
+
+## Tecnologías
+
+React 19, TypeScript 7, Vite 8 y MSAL Browser/React. Estilos CSS con variables de tema en `src/styles.css` y estilos del panel en `src/styles/gestion.css`. Las imágenes y el logo se almacenan en el proyecto. Las versiones exactas están en `package.json` y `package-lock.json`.
+
+## Arquitectura
 
 ```text
-Navegador (Vite :5173) → API Gateway /dev (AWS) → BFF :8080 → orders :8081
-                                                      ├────────→ catalog :8082
-                                                      └────────→ report :8083
-                         o BFF :8080 directo (desarrollo local)
+Frontend local :5173 → API Gateway HTTPS /dev → BFF :8080
+                                                ├── Órdenes :8081
+                                                ├── Catálogo :8082
+                                                └── Reportería :8083
 ```
 
-## Estructura útil
+En AWS, cada microservicio tiene su EC2 y PostgreSQL; BFF ocupa otra EC2. El frontend permanece local. GitHub almacena los repositorios: no responde las peticiones de negocio.
 
-| Ruta | Responsabilidad |
+Para desarrollo también puede consumirse BFF directamente en `http://localhost:8080`. No se apunta el navegador a los puertos de los microservicios.
+
+## Funciones por rol
+
+### Sitio público y Cliente
+
+- Inicio con presentación, fotografías y acceso al login. Header persistente con Inicio, Agendamiento, Servicios y Nosotros; con sesión de cliente incorpora Mi revisión técnica.
+- Agendamiento ofrece Mantenciones y arreglos o Diagnóstico. El formulario requiere sesión y se divide en vehículo, propietario, servicio/taller, fecha y resumen.
+- Correo obtenido de la sesión. Selección entre 20 talleres: siete de Biobío, siete de Maule y seis de Araucanía.
+- Calendario mensual: blanco disponible, gris no seleccionable y amarillo seleccionado, según las fechas y disponibilidad recibidas.
+- Confirmación de solicitud y consulta del historial propio con ID, tipo, taller, región, estado, fecha de creación y resumen desplegable.
+- Tras iniciar sesión, el cliente vuelve al inicio.
+
+Rutas: `/`, `/agendamiento`, `/agendamiento/solicitud?tipo=maintenance`, `/agendamiento/solicitud?tipo=diagnostics` y `/mis-revisiones`.
+
+Las solicitudes guardan el día de atención. La consulta de disponibilidad actualmente devuelve `occupiedDates: []`; ese resultado no representa una reserva de cupo confirmada.
+
+### Operador
+
+Consulta y crea órdenes; acepta o rechaza solicitudes; registra diagnóstico, trabajo realizado, fecha estimada de entrega, mano de obra y repuestos; avanza el trabajo y entrega el vehículo. El catálogo se consulta para seleccionar productos, con precio automático y cantidad validada contra existencias.
+
+### Admin
+
+Dispone de menú izquierdo con **Dashboard, Órdenes, Productos y Hacer reporte**. Puede gestionar órdenes, eliminar órdenes y administrar SKU, nombre, precio, stock y estado activo de productos. Las intervenciones de estado requieren un motivo.
+
+**Nueva orden permanece en la cabecera** para Admin y Operador. El menú y la sesión se mantienen al cambiar de sección.
+
+El dashboard muestra órdenes registradas, entregas e ingresos del período, productos activos con stock de cinco o menos y los veinte eventos recientes de auditoría. Actualiza aproximadamente cada diez segundos. Hacer reporte permite elegir un período y consultar cantidad de entregas, ingresos y fecha de generación.
+
+## Estructura de archivos
+
+| Ruta | Contenido |
 | --- | --- |
-| `.env.example` → `.env.local` | IDs de Entra y URL base de API específicos de tu PC. |
-| `src/auth/authConfig.ts` | MSAL: tenant, SPA client ID, redirect `/redirect.html`, scope de API. |
-| `src/auth/AuthGate.tsx`, `roles.ts` | Sesión y vista por rol. Los permisos reales los impone el BFF. |
-| `src/api/http.ts` | URL base, Bearer token y errores HTTP. |
-| `src/api/appointmentsApi.ts`, `ordersApi.ts`, `productsApi.ts`, `reportsApi.ts` | Llamadas separadas por recurso. |
-| `src/features/home/` | Portada pública y elección de servicio. |
-| `src/features/scheduling/` | Formulario de cinco pasos, calendario, validaciones y 20 talleres. |
-| `src/features/client/` | «Mi revisión técnica» e historial. |
-| `src/components/`, `src/App.tsx` | Órdenes e informe para Operador/Admin; dashboard, catálogo editable y reportes para Admin. `AdminDashboard.tsx` consulta ventas, órdenes, stock bajo y eventos. |
-| `src/assets/images/` | Logo y fotografías locales. |
-| `redirect.html`, `vite.config.ts` | Retorno del popup MSAL; Vite fija el puerto 5173 y lo incluye en el build. |
+| `src/main.tsx` | Entrada, inicialización de autenticación y renderizado. |
+| `src/App.tsx` | Composición de vistas y acciones del panel. |
+| `src/auth/` | Configuración MSAL, sesión, roles, login y obtención de token. |
+| `src/api/http.ts` | URL base, access token y manejo común de llamadas HTTP. |
+| `src/api/appointmentsApi.ts` | Solicitudes e historial del cliente. |
+| `src/api/ordersApi.ts` | CRUD, estados, informe técnico y confirmación de stock. |
+| `src/api/productsApi.ts`, `reportsApi.ts` | Catálogo, ventas y auditoría. |
+| `src/features/home/` | Inicio, header público y selección de servicio. |
+| `src/features/scheduling/` | Formulario de cinco pasos, calendario, tipos y validaciones. |
+| `src/features/scheduling/constants/workshops.ts` | Regiones, nombres e IDs de los talleres. |
+| `src/features/client/` | Mi revisión técnica y resumen de solicitudes. |
+| `src/features/reports/` | Página, hook y tratamiento de fechas del reporte. |
+| `src/components/` | Lista, filtros, detalle y formularios de órdenes; productos y dashboard. |
+| `src/layouts/MenuLateral.tsx` | Navegación lateral del panel. |
+| `src/constants/` | Estados de órdenes y opciones de navegación por rol. |
+| `src/types.ts`, `src/types/gestion.ts` | Contratos compartidos y tipos del panel. |
+| `src/styles.css`, `src/styles/gestion.css` | Tema y estilos de componentes/panel. |
+| `src/assets/images/` | Fotografías y logo locales. |
+| `redirect.html`, `vite.config.ts` | Retorno de MSAL y configuración de Vite. |
 
-## 1. Preparar Microsoft Entra ID (Azure)
+Los componentes muestran información y capturan acciones. Los hooks coordinan formularios y llamadas; los módulos API concentran el acceso al BFF. Los datos de negocio se conservan en los servicios, no en el estado del navegador.
 
-Se necesitan **dos registros de aplicación en el mismo tenant**. Los nombres son libres; usa, por ejemplo, `talleres360-api` y `talleres360-spa`. Los valores de abajo son identificadores, **no contraseñas**.
+## Configuración en otra PC
 
-1. En Microsoft Entra ID → **Registros de aplicaciones**, crea el registro de la **API**. En «Información general» copia el **Id. de directorio (inquilino)** para `VITE_ENTRA_TENANT_ID` / `ENTRA_TENANT_ID`, y el **Id. de aplicación (cliente)** de la API para `VITE_API_CLIENT_ID` / `API_CLIENT_ID`.
-2. En ese registro, «Exponer una API»: configura el URI de Id. de aplicación como `api://<API_CLIENT_ID>` y crea un scope delegado con valor exacto `access_as_user`. El frontend solicita `api://<API_CLIENT_ID>/access_as_user`; si cambias el URI o el nombre, también debes cambiar `src/auth/authConfig.ts`.
-3. En el manifiesto del registro de API, configura `requestedAccessTokenVersion` en `2` (en algunas vistas de manifiesto el campo se muestra como `accessTokenAcceptedVersion`). El BFF espera issuer `https://login.microsoftonline.com/<TENANT_ID>/v2.0` y audiencia igual al ID de aplicación de la API.
-4. En «Roles de aplicación» del registro de API, crea roles para usuarios/grupos con **valores** exactos `Cliente`, `Operador` y `Admin`. No basta con cambiar el nombre visible: `SecurityConfig.java` comprueba esos valores. En **Aplicaciones empresariales**, busca la aplicación correspondiente a la API y asigna usuarios/grupos a los roles. El correo de la cuenta cliente se usa para recuperar solo sus solicitudes.
-5. Crea el segundo registro, la **SPA**. Copia su **Id. de aplicación (cliente)** para `VITE_SPA_CLIENT_ID`. En «Autenticación», agrega plataforma **Aplicación de página única (SPA)** con URI de redirección `http://localhost:5173/redirect.html`. El código calcula esta URI desde el origen actual; si publicas el sitio en otro dominio HTTPS, registra también `https://<tu-dominio>/redirect.html`. Agrega el origen de retorno de logout si tu política de registro lo requiere.
-6. En la SPA, «Permisos de API» → permiso delegado de la API → `access_as_user`; concede consentimiento según las políticas de tu tenant. Registra/autoriza las cuentas de prueba según la configuración de tu organización.
+Necesitas Git, Node.js compatible con Vite 8 —por ejemplo Node 22.12 o superior de la rama 22— y npm. Si el BFF y los micros ya están funcionando en AWS, solo necesitas ejecutar este frontend en la PC.
 
-No coloques un **client secret** en Vite ni en `.env.local`: el navegador lo haría público. La SPA usa un flujo público con MSAL. El BFF valida el access token; un ID token no sustituye al access token para llamar a la API.
-
-## 2. Configurar y ejecutar en otra PC
-
-Instala Git y Node.js compatible con las dependencias del proyecto; el repositorio contiene `package-lock.json`, por lo que se recomienda `npm ci`. Inicia también BFF y backend siguiendo sus README. Para el stack local, `talleres360-backend`, `talleres360-bff` y `talleres360-frontend` deben ser carpetas hermanas.
-
-1. En la raíz de `talleres360-frontend/`, copia `.env.example` a `.env.local`. En Windows PowerShell: `Copy-Item .env.example .env.local`; en Linux/macOS: `cp .env.example .env.local`.
-2. Edita **ese archivo**, no `src/auth/authConfig.ts` ni una página:
-
-   ```dotenv
-   VITE_ENTRA_TENANT_ID=<Id-de-directorio-tenant>
-   VITE_SPA_CLIENT_ID=<Id-de-aplicación-de-la-SPA>
-   VITE_API_CLIENT_ID=<Id-de-aplicación-de-la-API>
-   VITE_API_BASE_URL=http://localhost:8080
-   ```
-
-   Los IDs SPA y API son **distintos**. El tenant y API client ID deben coincidir con el `.env` del BFF. El backend `infra/apps/.env` también usa esos dos valores al levantar el stack local. Si falta un ID, el sitio público abre, pero no se puede iniciar sesión. Si cambias `.env.local`, reinicia Vite.
-3. Ejecuta desde `talleres360-frontend/`:
-
-   ```bash
-   npm ci
-   npm run dev
-   ```
-
-4. Abre `http://localhost:5173`. Puedes ver inicio y elegir el servicio sin cuenta; **confirmar un agendamiento requiere iniciar sesión**. Cliente ve «Mi revisión técnica»; Operador atiende órdenes; Admin entra al dashboard. Usa `npm run typecheck` y `npm run build` para verificar el cliente; el resultado queda en `dist/`.
-
-No apuntes `VITE_API_BASE_URL` a `http://localhost:8081`: ese puerto es el microservicio sin validación de token y no es la entrada de la aplicación. Tampoco apuntes a 8082 o 8083: productos y reportes pasan por el BFF.
-
-## 3. Conectar el frontend local a tus EC2 mediante API Gateway
-
-Primero despliega orders, catalog, report y BFF según sus README. En AWS crea/configura una HTTP API cuyo destino sea **tu EC2 BFF**. El stage de ejemplo es `dev`; si usas `$default`, quita `/dev` de la URL base. Verifica que Gateway preserve las rutas `/api/appointments`, `/api/orders`, `/api/products`, `/api/reports` y sus subrutas al reenviarlas al BFF. En el autorizador JWT usa issuer v2 de tu tenant, audiencia de la **API** y scope `access_as_user`; deja pasar `OPTIONS` para preflight. Configura CORS con el origen exacto `http://localhost:5173`, métodos `GET, POST, PUT, DELETE, OPTIONS` y encabezados `authorization, content-type`.
-
-En `talleres360-frontend/.env.local` cambia **solo** la URL base:
+Crea **`.env.local` en la raíz de `talleres360-frontend`**, junto a `package.json`, y pega tus valores:
 
 ```dotenv
-VITE_API_BASE_URL=https://<tu-api-id>.execute-api.<tu-region>.amazonaws.com/dev
+VITE_ENTRA_TENANT_ID=<ID_DEL_TENANT>
+VITE_SPA_CLIENT_ID=<ID_DEL_REGISTRO_SPA>
+VITE_API_CLIENT_ID=<ID_DEL_REGISTRO_API>
+VITE_API_BASE_URL=https://<API_ID>.execute-api.<REGION>.amazonaws.com/dev
 ```
 
-Reinicia `npm run dev`. No agregues `/api/orders` a la URL base: `src/api/*.ts` añade cada ruta. Si la SPA está publicada en un dominio distinto de localhost, agrega **ese origen exacto** a: URI `/redirect.html` de la SPA en Entra, CORS de API Gateway y `CORS_ALLOWED_ORIGINS` del BFF. Publica el frontend por HTTPS fuera de localhost. Las variables `VITE_*` se incorporan al build: al cambiarlas para un hosting debes ejecutar `npm run build` de nuevo y desplegar el nuevo `dist/`. No hay configuración dinámica en tiempo de ejecución.
+| Variable | Dónde obtenerla |
+| --- | --- |
+| `VITE_ENTRA_TENANT_ID` | ID del directorio de Microsoft Entra ID. |
+| `VITE_SPA_CLIENT_ID` | ID de aplicación del registro SPA. |
+| `VITE_API_CLIENT_ID` | ID de aplicación del registro API, distinto al SPA. |
+| `VITE_API_BASE_URL` | URL base del stage de API Gateway; no agregar `/api/orders` ni otra ruta. |
 
-## 4. Comprobación de extremo a extremo
+Guarda el archivo. Si Vite estaba ejecutándose, reinícialo para cargar los valores. Para servicios locales usa `VITE_API_BASE_URL=http://localhost:8080`.
 
-1. Comprueba que Docker muestra `orders`, `catalog`, `report` y sus bases en la EC2 backend, y `bff` en la EC2 BFF. Desde BFF, `curl -i http://<IP-privada-backend>:8081/api/orders` debe obtener HTTP. Catálogo/Reportería exigen además la clave interna.
-2. Desde tu PC, prueba el preflight en la ruta **completa** de Gateway (incluido stage `/dev`) usando `curl.exe` en PowerShell:
+El tenant y el ID API coinciden con `ENTRA_TENANT_ID` y `API_CLIENT_ID` del BFF. Los IDs permiten identificar las aplicaciones, pero **no pongas client secrets, claves internas, contraseñas ni PEM en variables `VITE_*`**: su contenido llega al navegador. Mantén `.env.local` fuera de Git.
 
-   ```powershell
-   curl.exe -i -X OPTIONS "https://<tu-api-id>.execute-api.<tu-region>.amazonaws.com/dev/api/orders" -H "Origin: http://localhost:5173" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Headers: authorization,content-type"
-   ```
+## Microsoft Entra ID
 
-   Espera 200/204 con `access-control-allow-origin: http://localhost:5173`. Si da 403, revisa el preflight sin auth, el path del stage/integración y los orígenes CORS.
-3. Inicia sesión con una cuenta con rol `Cliente`. Crea una solicitud y confirma que aparezca en «Mi revisión técnica» y en el panel Operador/Admin. Prueba también que esos roles no accedan a rutas ajenas. Si hay 401, revisa tenant/issuer/audience; con 403, revisa scope, rol y reglas de Gateway/BFF. Nunca pegues un token real en issues o capturas.
+El proyecto utiliza dos registros en el mismo tenant:
 
-## Estado actual y límites
+1. **API:** URI `api://<ID_API>`, scope delegado `access_as_user` y access tokens versión 2.
+2. **Roles en la API:** valores exactos `Cliente`, `Operador` y `Admin`, asignados a las cuentas desde la aplicación empresarial correspondiente.
+3. **SPA:** plataforma de página única con redirección `http://localhost:5173/redirect.html`.
+4. **Permiso de la SPA:** acceso delegado al scope `api://<ID_API>/access_as_user`, con consentimiento según la política del tenant.
 
-Los 20 talleres son una lista compartida en `src/features/scheduling/constants/workshops.ts` y validada también en el backend; no hay un microservicio de sucursales. `GET /api/appointments/availability` **no calcula ocupación real todavía**: el calendario puede mostrar fechas disponibles sin reserva de cupos.
+`src/auth/authConfig.ts` utiliza las variables para formar autoridad, scope y URI de retorno. MSAL conserva la sesión en `sessionStorage`. El token enviado a BFF es un **access token para la API**, no el ID token de inicio de sesión.
 
-El Operador puede crear órdenes, aceptar/cancelar solicitudes, registrar diagnóstico, trabajo realizado, fecha estimada, mano de obra y repuestos, y entregar; solo consulta el catálogo. Admin puede hacer eso, gestiona productos, precios y stock, ve ventas/auditoría y al cambiar un estado debe dejar un motivo. El formulario de ítems selecciona productos del catálogo y envía ID y cantidad; el precio lo determina el backend. El dashboard muestra órdenes registradas, entregas/ventas del período, productos activos con stock de 5 o menos y los 20 eventos de auditoría más recientes; consulta reportería, catálogo y órdenes aproximadamente cada 10 segundos. El rango visible del dashboard incluye ambos días elegidos; la API de reportes usa `[from,to)` con fechas ISO 8601, por lo que el cliente envía el día siguiente como límite superior. Los eventos llegan mediante outbox, por lo que pueden demorarse si un servicio falla.
+BFF valida tenant, audiencia, scope y roles. Ocultar una opción en React no sustituye esos permisos.
 
-**No está validado todavía en EC2 con esta versión.** La compilación del frontend pasó, pero sin el stack Docker activo no se comprobó el flujo completo de crear producto → crear orden → registrar trabajo → entregar → descontar stock → mostrar venta y auditoría. Haz esa prueba con cuentas Operador y Admin antes de darlo por terminado. Consulta el README backend para riesgos de consistencia y migración.
+## Ejecutar y compilar
 
-Mantén `.env.local` fuera de Git. Aunque los IDs de aplicación no sean secretos, cualquier secreto en una variable `VITE_*` queda visible en el navegador. Usa valores propios de cada tenant y de cada entorno; no copies URLs, IPs o llaves PEM del equipo de otro integrante.
+Desde la raíz del frontend:
+
+```bash
+npm ci
+npm run dev
+```
+
+Abre **http://localhost:5173**. Vite utiliza ese puerto con `strictPort`, coherente con la redirección registrada.
+
+Comprobación de tipos:
+
+```bash
+npm run typecheck
+```
+
+Build:
+
+```bash
+npm run build
+```
+
+El resultado queda en `dist/`. `npm run preview` permite revisar ese build; el origen utilizado también debe estar autorizado en Entra y CORS. Las variables `VITE_*` se incorporan durante la compilación: al cambiarlas en un sitio compilado hay que generar y publicar el nuevo build.
+
+## Conexión con AWS y CORS
+
+`VITE_API_BASE_URL` apunta a **API Gateway**, que reenvía las peticiones al BFF. Para un stage `dev` se incluye `/dev`; para `$default` se usa la URL sin ese sufijo.
+
+Gateway debe enviar `/api/...` al BFF, sin agregar el prefijo de stage. El autorizador JWT utiliza issuer `https://login.microsoftonline.com/<TENANT_ID>/v2.0`, audiencia del registro API y scope `access_as_user`.
+
+El preflight `OPTIONS` debe responder sin exigir token. Autoriza el origen exacto `http://localhost:5173`, encabezados `authorization, content-type` y métodos `GET, POST, PUT, DELETE, OPTIONS`. El origen también se configura en `CORS_ALLOWED_ORIGINS` del BFF.
+
+Si cambia:
+
+- **Una IP privada de un micro:** actualiza las URL del BFF y, para Catálogo/Reportería, también las de Órdenes.
+- **La dirección pública del BFF:** actualiza la integración Gateway.
+- **Gateway o stage:** actualiza `VITE_API_BASE_URL`.
+- **El origen del frontend:** registra su `/redirect.html` en Entra y autoriza ese origen en CORS.
+
+## Validaciones y stock
+
+Patente de seis caracteres alfanuméricos, con formato por pares; modelo con letras, números y espacios; año entre 1900 y el actual + 1. RUT con Módulo 11 y K final; teléfono de ocho dígitos tras +56 9; nombre/apellido con letras, espacios, apóstrofes y guiones. El motivo tiene entre 10 y 500 caracteres y el día de atención está entre mañana y los próximos noventa días.
+
+**Módulo 11 comprueba el dígito verificador, no la existencia oficial de una persona.** El backend vuelve a validar los datos y determina el correo autenticado.
+
+Los repuestos se eligen del catálogo; se envían ID y cantidad, no un precio libre. Al aceptar se solicita una asignación versionada de existencias. Editar el informe ajusta esa asignación y cancelar la libera. El formulario consulta stock libre y lo ya asignado a la orden. Entregar exige que se haya confirmado la última asignación y no descuenta por segunda vez.
+
+Los mensajes de carga/error acompañan las operaciones. Ante errores de sesión o conexión se muestran avisos comprensibles; la investigación técnica se realiza en las herramientas del navegador y los registros del servidor, sin publicar tokens.
+
+## Comprobaciones
+
+El 6 de octubre de 2026 pasaron TypeScript y build en el entorno local. Son comprobaciones de código, no una certificación de la infraestructura AWS.
+
+Para revisar la conexión, inicia sesión con cada rol, consulta sus vistas autorizadas, crea una solicitud y verifica su historial, gestiona una orden y consulta su asignación de stock, entrega y revisa ventas/auditoría como Admin. Los reportes cuentan solamente órdenes entregadas; su actualización depende del envío periódico del outbox de Órdenes.
+
+Una respuesta 401 requiere revisar sesión, issuer y audiencia; una 403, scope/roles y CORS cuando corresponda. La URL base, rutas y origen se configuran en los archivos indicados, no dentro de las páginas.
