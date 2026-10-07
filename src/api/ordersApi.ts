@@ -1,12 +1,5 @@
 import { request } from './http';
-import type { Order, OrderFilters, OrderPayload, OrderStatus, TechnicalUpdatePayload } from '../types';
-
-export interface EstadoStockOrden {
-  revision: number;
-  confirmedRevision: number;
-  pending: boolean;
-  quantities: Record<string, number>;
-}
+import type { Order, OrderFilters, OrderPayload, OrderStatus } from '../types';
 
 function toQuery({ status = '', from = '', to = '' }: Partial<OrderFilters>) {
   const params = new URLSearchParams();
@@ -17,15 +10,14 @@ function toQuery({ status = '', from = '', to = '' }: Partial<OrderFilters>) {
   return query ? `?${query}` : '';
 }
 
+// Endpoints de ms-talleres360-orders (via API Gateway -> BFF)
 export const ordersApi = {
   list: (filters: Partial<OrderFilters> = {}) => request<Order[]>(`/api/orders${toQuery(filters)}`),
   get: (id: number) => request<Order>(`/api/orders/${id}`),
-  stock: (id: number) => request<EstadoStockOrden>(`/api/orders/${id}/stock`),
   create: (order: OrderPayload) => request<Order>('/api/orders', { method: 'POST', body: order }),
+  // Solo se puede editar en RECIBIDA (si no, 409)
   update: (id: number, order: OrderPayload) => request<Order>(`/api/orders/${id}`, { method: 'PUT', body: order }),
-  changeStatus: (id: number, status: OrderStatus, reason?: string) =>
-    request<Order>(`/api/orders/${id}/status`, { method: 'PUT', body: { status, reason } }),
-  updateTechnical: (id: number, payload: TechnicalUpdatePayload) =>
-    request<Order>(`/api/orders/${id}/technical`, { method: 'PUT', body: payload }),
+  changeStatus: (id: number, status: OrderStatus) =>
+    request<Order>(`/api/orders/${id}/status`, { method: 'PUT', body: { status } }),
   remove: (id: number) => request<null>(`/api/orders/${id}`, { method: 'DELETE' }),
 };

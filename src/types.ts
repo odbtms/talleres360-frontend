@@ -8,26 +8,26 @@ export type OrderStatus =
 
 export type AppRole = 'Admin' | 'Operador' | 'Cliente';
 
+// Contrato de ms-talleres360-orders (OrderRequest / OrderResponse)
 export interface OrderItem {
   id: number;
   productId: number;
-  description?: string | null;
   quantity: number;
   unitPrice: number;
   subtotal: number;
 }
 
+// El precio lo toma el front del catalogo (ms-catalog) al asignar el repuesto
 export interface OrderItemInput {
   productId: number;
   quantity: number;
+  unitPrice: number;
 }
 
 export interface OrderPayload {
   workshopId: number;
   customerName: string;
   customerEmail: string;
-  customerRut?: string;
-  customerPhone?: string;
   vehiclePlate: string;
   vehicleModel: string;
   description: string;
@@ -39,17 +39,9 @@ export interface Order {
   workshopId: number;
   customerName: string;
   customerEmail: string;
-  customerRut?: string | null;
-  customerPhone?: string | null;
   vehiclePlate: string;
   vehicleModel: string | null;
-  vehicleYear?: number | null;
   description: string | null;
-  diagnosis?: string | null;
-  workPerformed?: string | null;
-  laborCost?: number | null;
-  estimatedDeliveryDate?: string | null;
-  technicalUpdatedAt?: string | null;
   status: OrderStatus;
   items: OrderItem[];
   total: number;
@@ -57,17 +49,6 @@ export interface Order {
   updatedAt: string;
   acceptedAt: string | null;
   deliveredAt: string | null;
-  serviceType?: 'MAINTENANCE' | 'DIAGNOSTICS' | null;
-  regionId?: 'biobio' | 'maule' | 'araucania' | null;
-  appointmentDate?: string | null;
-}
-
-export interface TechnicalUpdatePayload {
-  diagnosis: string;
-  workPerformed: string;
-  laborCost: number;
-  estimatedDeliveryDate: string;
-  items: Array<{ productId: number; quantity: number }>;
 }
 
 export interface Product { id: number; sku: string; name: string; stock: number; price: number; active: boolean; available: boolean; }

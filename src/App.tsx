@@ -5,7 +5,7 @@ import OrderFilters from './components/OrderFilters';
 import OrderList from './components/OrderList';
 import OrderDetail from './components/OrderDetail';
 import OrderForm from './components/OrderForm';
-import TechnicalOrderForm from './components/TechnicalOrderForm';
+import OrderItemsForm from './components/OrderItemsForm';
 import ProductsPage from './components/ProductsPage';
 import AdminDashboard from './components/AdminDashboard';
 import MenuLateral from './layouts/MenuLateral';
@@ -13,7 +13,7 @@ import ReportesPage from './features/reports/pages/ReportesPage';
 import { OPCIONES_GESTION, TITULOS_GESTION } from './constants/navegacionGestion';
 import type { DestinoGestion, VistaGestion } from './types/gestion';
 import { permissionsFor } from './auth/roles';
-import type { Order, OrderFilters as OrderFiltersValue, OrderPayload, OrderStatus, Session, TechnicalUpdatePayload } from './types';
+import type { Order, OrderFilters as OrderFiltersValue, OrderPayload, OrderStatus, Session } from './types';
 
 const EMPTY_FILTERS: OrderFiltersValue = { status: '', from: '', to: '' };
 
@@ -27,7 +27,7 @@ export default function App({ session }: AppProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [selected, setSelected] = useState<Order | null>(null);
-  const [formMode, setFormMode] = useState<'create' | 'technical' | null>(null);
+  const [formMode, setFormMode] = useState<'create' | 'items' | null>(null);
   const [view, setView] = useState<VistaGestion>(session.roles.includes('Admin') ? 'dashboard' : 'orders');
   const [menuAbierto, setMenuAbierto] = useState(false);
   const botonMenu = useRef<HTMLButtonElement>(null);
@@ -81,20 +81,13 @@ export default function App({ session }: AppProps) {
     }
   }
 
-  async function handleTechnicalSave(payload: TechnicalUpdatePayload) {
-    const saved = await run(() => ordersApi.updateTechnical(selected!.id, payload));
+  async function handleItemsSave(payload: OrderPayload) {
+    const saved = await run(() => ordersApi.update(selected!.id, payload));
     if (saved) { setSelected(saved); setFormMode(null); }
   }
 
   async function handleChangeStatus(status: OrderStatus) {
-    let reason: string | undefined;
-    if (session.roles.includes('Admin')) {
-      const value = window.prompt('Motivo de la intervención administrativa (mínimo 10 caracteres):');
-      if (value === null) return;
-      reason = value.trim();
-      if (reason.length < 10) { setError('Explica el motivo de la intervención con al menos 10 caracteres.'); return; }
-    }
-    const updated = await run(() => ordersApi.changeStatus(selected!.id, status, reason));
+    const updated = await run(() => ordersApi.changeStatus(selected!.id, status));
     if (updated) setSelected(updated);
   }
 
@@ -162,15 +155,15 @@ export default function App({ session }: AppProps) {
               onSubmit={handleSave}
               onCancel={() => setFormMode(null)}
             />
-          ) : formMode === 'technical' && selected ? (
-            <TechnicalOrderForm order={selected} onSubmit={handleTechnicalSave} onCancel={() => setFormMode(null)} />
+          ) : formMode === 'items' && selected ? (
+            <OrderItemsForm order={selected} onSubmit={handleItemsSave} onCancel={() => setFormMode(null)} />
           ) : selected ? (
             <OrderDetail
               order={selected}
               canWrite={canWrite}
               canDelete={canDelete}
               onChangeStatus={handleChangeStatus}
-              onEdit={() => setFormMode('technical')}
+              onEdit={() => setFormMode('items')}
               onDelete={handleDelete}
             />
           ) : (

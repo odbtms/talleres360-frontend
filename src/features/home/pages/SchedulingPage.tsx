@@ -36,8 +36,8 @@ export default function SchedulingPage({
           <p className="section-eyebrow">Agenda tu atención</p>
           <h1>¿Qué necesita tu vehículo?</h1>
           <p>
-            Selecciona el tipo de atención que buscas. Esta información nos permitirá dirigir tu solicitud
-            al proceso adecuado desde el comienzo.
+            Acércate o llama a tu taller Talleres360 más cercano: un operador registra la orden de trabajo
+            con tu correo y podrás seguir su estado en «Mi revisión técnica».
           </p>
         </header>
 
@@ -53,9 +53,11 @@ export default function SchedulingPage({
               <div className="scheduling-card__content">
                 <h2>{option.title}</h2>
                 <p>{option.description}</p>
-                <a className="scheduling-card__button" href={`/agendamiento/solicitud?tipo=${option.id}`}>
-                  Seleccionar
-                </a>
+                {session && (
+                  <a className="scheduling-card__button" href="/mis-revisiones">
+                    Ver mis órdenes
+                  </a>
+                )}
               </div>
             </article>
           ))}

@@ -6,8 +6,6 @@ import { obtenerToken } from './token';
 import { setTokenProvider } from '../api/http';
 import { rolesFromToken } from './roles';
 import PublicSite from '../features/home/PublicSite';
-import BookingPage from '../features/scheduling/pages/BookingPage';
-import type { ServiceType } from '../features/scheduling/types/scheduling';
 import ClientSite from '../features/client/ClientSite';
 import type { Session } from '../types';
 
@@ -83,12 +81,6 @@ function MsalAuthGate({ children }: AuthGateProps) {
     roles,
     logout: () => instance.logoutPopup({ account }),
   };
-
-  if (window.location.pathname.replace(/\/+$/, '') === '/agendamiento/solicitud') {
-    const requestedType = new URLSearchParams(window.location.search).get('tipo');
-    const serviceType: ServiceType = requestedType === 'diagnostics' ? 'diagnostics' : 'maintenance';
-    return <BookingPage session={session} serviceType={serviceType} />;
-  }
 
   if (roles.includes('Cliente') && !roles.some((role) => role === 'Admin' || role === 'Operador')) {
     return <ClientSite session={session} />;
