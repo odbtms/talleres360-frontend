@@ -29,7 +29,7 @@ export async function request<T>(path: string, { method = 'GET', body }: Request
     if (res.status === 401) throw new Error('Tu sesión venció. Cierra sesión e ingresa nuevamente.');
     if (res.status === 403) throw new Error('Tu cuenta no tiene permisos para realizar esta acción.');
     const detail = data && typeof data === 'object' && 'detail' in data ? data.detail : undefined;
-    throw new Error(detail ?? `Error ${res.status} llamando a ${path}`);
+    throw new Error(detail ?? 'No se pudo completar la operación. Inténtalo nuevamente.');
   }
   return data as T;
 }

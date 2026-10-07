@@ -1,0 +1,127 @@
+/* Diseño del panel interno. No modifica la navegación pública ni del cliente. */
+.management-shell {
+  --sidebar-width: 17rem;
+  --management-header-height: 5.5rem;
+  --sidebar-text: #e2e8f0;
+  --sidebar-muted: #94a3b8;
+  --sidebar-hover: #1e293b;
+  --sidebar-border: #334155;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-items: start;
+}
+
+.management-sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  height: 100vh;
+  height: 100dvh;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+  color: var(--sidebar-text);
+  background: var(--navy);
+}
+
+.management-sidebar__brand { display: flex; align-items: center; gap: .75rem; }
+.management-sidebar__brand .public-brand-logo { width: 4rem; height: 4rem; flex-shrink: 0; }
+.management-sidebar__brand strong { display: block; font-size: 1.2rem; }
+.management-sidebar__brand span { display: block; margin-top: .25rem; color: var(--sidebar-muted); font-size: .85rem; }
+.management-navigation { display: grid; gap: .75rem; }
+.management-navigation__label { margin: 0 0 .25rem .75rem; color: var(--sidebar-muted); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.management-navigation__item {
+  display: grid;
+  gap: .25rem;
+  width: 100%;
+  min-height: 4.25rem;
+  padding: .85rem 1rem;
+  border: 1px solid var(--sidebar-border);
+  border-radius: var(--radius);
+  color: var(--sidebar-text);
+  background: var(--navy);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.management-navigation__item span { color: var(--sidebar-muted); font-size: .8rem; }
+.management-navigation__item:hover { border-color: var(--sidebar-muted); background: var(--sidebar-hover); }
+.management-navigation__item.is-active { border-color: var(--accent); color: var(--navy); background: var(--accent); }
+.management-navigation__item.is-active span { color: var(--navy); }
+.management-shell button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.management-navigation__item.is-active:focus-visible { outline-color: var(--surface); }
+.management-sidebar__footer { margin: auto 0 0; padding: 1rem .75rem 0; border-top: 1px solid var(--sidebar-border); color: var(--sidebar-muted); font-size: .85rem; }
+
+.management-workspace { min-width: 0; }
+.management-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  min-height: var(--management-header-height);
+  gap: 1rem;
+}
+.management-topbar__heading { display: flex; align-items: center; gap: 1rem; }
+.management-topbar .topbar-actions { flex-wrap: wrap; justify-content: flex-end; gap: 1rem; min-width: 0; }
+.management-topbar .user { min-width: 0; }
+.management-topbar .user-mail { overflow-wrap: anywhere; }
+.management-shell .management-menu-toggle { display: none; }
+.management-shell .side { top: calc(var(--management-header-height) + 1rem); min-width: 0; }
+.management-shell .fields dd { overflow-wrap: anywhere; }
+.management-shell .layout > .panel { min-width: 0; }
+.management-shell .dashboard-cards > * { min-width: 0; }
+.management-shell .dashboard-cards strong { overflow-wrap: anywhere; }
+
+.reports-page { display: grid; gap: 1.5rem; padding: 1.5rem; }
+.management-page-heading h1 { margin: 0; font-size: 2rem; }
+.management-page-heading p { margin-bottom: 0; color: var(--muted); }
+.reports-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 1rem; }
+.reports-filters label { min-width: 12rem; flex: 1; }
+.reports-filters input, .reports-filters button { min-height: 2.75rem; }
+.reports-page .alert { margin: 0; }
+.reports-empty { display: grid; align-content: center; justify-items: center; min-height: 18rem; padding: 2rem; text-align: center; }
+.reports-empty p, .reports-result header p { color: var(--muted); }
+.reports-result { padding: 1.5rem; }
+.reports-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.reports-metrics > div { padding: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
+.reports-metrics dt { color: var(--muted); }
+.reports-metrics dd { margin: .75rem 0 0; font-size: 2rem; font-weight: 700; overflow-wrap: anywhere; }
+
+@media (max-width: 1200px) {
+  .management-shell .layout { grid-template-columns: minmax(0, 1fr); }
+  .management-shell .side { position: static; }
+  .management-topbar { align-items: start; }
+  .management-topbar .topbar-actions { flex: 1; }
+  .management-shell .dashboard-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .management-shell { display: flex; flex-direction: column; align-items: stretch; }
+  .management-workspace { display: contents; }
+  .management-topbar { order: 0; flex-wrap: wrap; }
+  .management-shell .management-menu-toggle { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; }
+  .management-sidebar { position: static; order: 1; display: none; height: auto; padding: 1rem; }
+  .management-sidebar.is-open { display: block; }
+  .management-sidebar__brand, .management-sidebar__footer { display: none; }
+  .management-navigation { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .management-navigation__label { grid-column: 1 / -1; }
+  .management-workspace > :not(.management-topbar) { order: 2; }
+}
+
+@media (max-width: 560px) {
+  .management-topbar { padding: 1rem; }
+  .management-topbar .topbar-actions { width: 100%; flex-basis: 100%; justify-content: space-between; }
+  .management-topbar .user { order: -1; flex: 1 0 100%; align-items: flex-start; padding-left: 0; border-left: 0; }
+  .management-shell .layout, .management-shell .dashboard, .reports-page { padding: 1rem; }
+  .management-shell .products-page { margin: 1rem; }
+  .management-shell .dashboard-cards, .reports-metrics { grid-template-columns: minmax(0, 1fr); }
+  .reports-filters { align-items: stretch; flex-direction: column; }
+  .reports-filters label { min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .management-navigation__item { transition: none; }
+}

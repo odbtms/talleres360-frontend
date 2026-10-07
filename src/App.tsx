@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import './styles/gestion.css';
 import { ordersApi } from './api/ordersApi';
 import OrderFilters from './components/OrderFilters';
 import OrderList from './components/OrderList';
@@ -7,6 +8,10 @@ import OrderForm from './components/OrderForm';
 import TechnicalOrderForm from './components/TechnicalOrderForm';
 import ProductsPage from './components/ProductsPage';
 import AdminDashboard from './components/AdminDashboard';
+import MenuLateral from './layouts/MenuLateral';
+import ReportesPage from './features/reports/pages/ReportesPage';
+import { OPCIONES_GESTION, TITULOS_GESTION } from './constants/navegacionGestion';
+import type { DestinoGestion, VistaGestion } from './types/gestion';
 import { permissionsFor } from './auth/roles';
 import type { Order, OrderFilters as OrderFiltersValue, OrderPayload, OrderStatus, Session, TechnicalUpdatePayload } from './types';
 
@@ -23,10 +28,22 @@ export default function App({ session }: AppProps) {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [selected, setSelected] = useState<Order | null>(null);
   const [formMode, setFormMode] = useState<'create' | 'technical' | null>(null);
-  const [view, setView] = useState<'dashboard' | 'orders' | 'products'>(session.roles.includes('Admin') ? 'dashboard' : 'orders');
+  const [view, setView] = useState<VistaGestion>(session.roles.includes('Admin') ? 'dashboard' : 'orders');
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  const botonMenu = useRef<HTMLButtonElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { canWrite, canCreate, canDelete } = permissionsFor(session.roles);
+
+  function navegar(destino: DestinoGestion): void {
+    const opcion = OPCIONES_GESTION.find((item) => item.id === destino);
+    if (!opcion?.roles.some((rol) => session.roles.includes(rol))) return;
+    if (menuAbierto) botonMenu.current?.focus();
+    setMenuAbierto(false);
+    setError('');
+    setView(destino === 'new-order' ? 'orders' : destino);
+    setFormMode(destino === 'new-order' ? 'create' : null);
+  }
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
@@ -40,8 +57,8 @@ export default function App({ session }: AppProps) {
   }, [filters]);
 
   useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
+    if (view === 'orders') void loadOrders();
+  }, [loadOrders, view]);
 
   // Ejecuta una accion contra la API, refresca la lista y muestra el error del backend si falla
   async function run<T>(action: () => Promise<T>): Promise<T | undefined> {
@@ -93,18 +110,21 @@ export default function App({ session }: AppProps) {
   }
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <div className="brand">
-          Talleres360 <span>Órdenes de trabajo</span>
+    <div className="app management-shell" onKeyDown={(evento) => {
+      if (evento.key === 'Escape' && menuAbierto) {
+        setMenuAbierto(false);
+        botonMenu.current?.focus();
+      }
+    }}>
+      <MenuLateral roles={session.roles} destinoActivo={view} abierto={menuAbierto} onNavegar={navegar} />
+      <div className="management-workspace">
+      <header className="topbar management-topbar">
+        <div className="management-topbar__heading">
+          <button ref={botonMenu} className="btn ghost management-menu-toggle" type="button" aria-controls="menu-gestion" aria-expanded={menuAbierto} onClick={() => setMenuAbierto((abierto) => !abierto)}>{menuAbierto ? 'Cerrar menú' : 'Menú'}</button>
+          <div className="brand">{formMode === 'create' ? 'Nueva orden' : TITULOS_GESTION[view]}</div>
         </div>
         <div className="topbar-actions">
-          {session.roles.includes('Admin') && <>
-            <button className="btn ghost" onClick={() => { setView('dashboard'); setFormMode(null); }}>Dashboard</button>
-            <button className="btn ghost" onClick={() => { setView('orders'); setFormMode(null); }}>Órdenes</button>
-            <button className="btn ghost" onClick={() => { setView('products'); setFormMode(null); }}>Productos</button>
-          </>}
-          {canCreate && <button className="btn primary" onClick={() => { setView('orders'); setFormMode('create'); }}>Nueva orden</button>}
+          {canCreate && <button className="btn primary" type="button" onClick={() => navegar('new-order')}>Nueva orden</button>}
           <div className="user">
             <span className="user-name">
               {session.name}
@@ -126,8 +146,9 @@ export default function App({ session }: AppProps) {
         </div>
       )}
 
-      {view === 'dashboard' ? <AdminDashboard onOpenOrders={() => setView('orders')} onOpenProducts={() => setView('products')} />
-        : view === 'products' ? <ProductsPage /> : <main className="layout">
+      {view === 'dashboard' ? <AdminDashboard onOpenOrders={() => navegar('orders')} onOpenProducts={() => navegar('products')} />
+        : view === 'products' ? <ProductsPage />
+        : view === 'reports' ? <ReportesPage /> : <main className="layout">
         <section className="panel">
           <OrderFilters value={filters} onChange={setFilters} onReset={() => setFilters(EMPTY_FILTERS)} />
           <OrderList orders={orders} loading={loading} selectedId={selected?.id} onSelect={selectOrder} />
@@ -157,6 +178,7 @@ export default function App({ session }: AppProps) {
           )}
         </aside>
       </main>}
+      </div>
     </div>
   );
 }

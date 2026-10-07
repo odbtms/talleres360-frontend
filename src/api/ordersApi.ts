@@ -1,6 +1,13 @@
 import { request } from './http';
 import type { Order, OrderFilters, OrderPayload, OrderStatus, TechnicalUpdatePayload } from '../types';
 
+export interface EstadoStockOrden {
+  revision: number;
+  confirmedRevision: number;
+  pending: boolean;
+  quantities: Record<string, number>;
+}
+
 function toQuery({ status = '', from = '', to = '' }: Partial<OrderFilters>) {
   const params = new URLSearchParams();
   if (status) params.set('status', status);
@@ -13,6 +20,7 @@ function toQuery({ status = '', from = '', to = '' }: Partial<OrderFilters>) {
 export const ordersApi = {
   list: (filters: Partial<OrderFilters> = {}) => request<Order[]>(`/api/orders${toQuery(filters)}`),
   get: (id: number) => request<Order>(`/api/orders/${id}`),
+  stock: (id: number) => request<EstadoStockOrden>(`/api/orders/${id}/stock`),
   create: (order: OrderPayload) => request<Order>('/api/orders', { method: 'POST', body: order }),
   update: (id: number, order: OrderPayload) => request<Order>(`/api/orders/${id}`, { method: 'PUT', body: order }),
   changeStatus: (id: number, status: OrderStatus, reason?: string) =>
