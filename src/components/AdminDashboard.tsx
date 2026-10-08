@@ -52,7 +52,7 @@ export default function AdminDashboard({ onOpenOrders, onOpenProducts }: Props) 
       </section>
       <section className="panel"><h2>Auditoría reciente</h2>
         {audit.length === 0 ? <p className="muted">Aún no hay eventos registrados.</p> :
-          <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Orden</th><th>Acción</th><th>Usuario</th><th>Estado</th></tr></thead>
+          <div className="table-wrap table-wrap--audit" role="region" aria-label="Auditoría reciente" tabIndex={0}><table><thead><tr><th>Fecha</th><th>Orden</th><th>Acción</th><th>Usuario</th><th>Estado</th></tr></thead>
             <tbody>{audit.slice(0, 20).map((event) => <tr key={event.eventId}>
               <td>{formatDate(event.occurredAt)}</td><td>#{event.orderId}</td><td>{event.type.replaceAll('_', ' ')}</td>
               <td title={event.reason || undefined}>{event.actor}{event.reason ? ` · ${event.reason}` : ''}</td><td>{event.status}</td></tr>)}</tbody></table></div>}

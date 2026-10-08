@@ -14,7 +14,7 @@ export default function OrderList({ orders, loading, selectedId, onSelect }: Ord
   if (orders.length === 0) return <p className="empty">No hay órdenes con esos filtros.</p>;
 
   return (
-    <div className="table-wrap">
+    <div className="table-wrap table-wrap--orders" role="region" aria-label="Listado de órdenes" tabIndex={0}>
       <table>
         <thead>
           <tr>

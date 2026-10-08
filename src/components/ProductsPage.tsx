@@ -58,7 +58,7 @@ export default function ProductsPage() {
     </form>
     {loading && <p className="empty">Cargando productos…</p>}
     {!loading && !error && products.length === 0 && <div className="products-empty"><h2>No hay productos registrados</h2><p>Agrega el primer repuesto con el formulario superior.</p></div>}
-    {products.length > 0 && <div className="table-wrap"><table><thead><tr><th>SKU</th><th>Producto</th><th>Stock</th><th>Precio</th><th>Estado</th><th>Acción</th></tr></thead>
+    {products.length > 0 && <div className="table-wrap" role="region" aria-label="Listado de productos" tabIndex={0}><table><thead><tr><th>SKU</th><th>Producto</th><th>Stock</th><th>Precio</th><th>Estado</th><th>Acción</th></tr></thead>
       <tbody>{products.map((product) => <tr key={product.id}><td>{product.sku}</td><td>{product.name}</td><td>{product.stock}</td><td>{formatMoney(product.price)}</td><td>{product.available ? 'Disponible' : product.active ? 'Sin stock' : 'Inactivo'}</td><td><button className="btn ghost small" type="button" onClick={() => edit(product)}>Editar</button></td></tr>)}</tbody></table></div>}
   </main>;
 }

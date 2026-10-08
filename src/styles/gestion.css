@@ -1,16 +1,20 @@
-/* Diseño del panel interno. No modifica la navegación pública ni del cliente. */
+/* Panel interno: ancho completo y distribución según el espacio disponible. */
 .management-shell {
-  --sidebar-width: 17rem;
+  --sidebar-width: clamp(14rem, 16vw, 19rem);
   --management-header-height: 5.5rem;
+  --management-gap: clamp(1rem, 1.25vw, 2rem);
+  --management-gutter: clamp(1rem, 1.5vw, 3rem);
   --sidebar-text: #e2e8f0;
   --sidebar-muted: #94a3b8;
   --sidebar-hover: #1e293b;
   --sidebar-border: #334155;
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  align-items: start;
+  width: 100%;
+  max-width: none;
   min-height: 100vh;
   min-height: 100dvh;
-  align-items: start;
 }
 
 .management-sidebar {
@@ -21,15 +25,16 @@
   gap: 2rem;
   height: 100vh;
   height: 100dvh;
+  min-width: 0;
   padding: 1.5rem 1rem;
   overflow-y: auto;
   color: var(--sidebar-text);
   background: var(--navy);
 }
 
-.management-sidebar__brand { display: flex; align-items: center; gap: .75rem; }
+.management-sidebar__brand { display: flex; align-items: center; gap: .75rem; min-width: 0; }
 .management-sidebar__brand .public-brand-logo { width: 4rem; height: 4rem; flex-shrink: 0; }
-.management-sidebar__brand strong { display: block; font-size: 1.2rem; }
+.management-sidebar__brand strong { display: block; font-size: 1.2rem; overflow-wrap: anywhere; }
 .management-sidebar__brand span { display: block; margin-top: .25rem; color: var(--sidebar-muted); font-size: .85rem; }
 .management-navigation { display: grid; gap: .75rem; }
 .management-navigation__label { margin: 0 0 .25rem .75rem; color: var(--sidebar-muted); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
@@ -45,6 +50,7 @@
   background: var(--navy);
   font: inherit;
   text-align: left;
+  overflow-wrap: anywhere;
   cursor: pointer;
   transition: background-color .15s ease, border-color .15s ease;
 }
@@ -52,76 +58,177 @@
 .management-navigation__item:hover { border-color: var(--sidebar-muted); background: var(--sidebar-hover); }
 .management-navigation__item.is-active { border-color: var(--accent); color: var(--navy); background: var(--accent); }
 .management-navigation__item.is-active span { color: var(--navy); }
-.management-shell button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.management-shell button:focus-visible,
+.management-shell .table-wrap:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .management-navigation__item.is-active:focus-visible { outline-color: var(--surface); }
 .management-sidebar__footer { margin: auto 0 0; padding: 1rem .75rem 0; border-top: 1px solid var(--sidebar-border); color: var(--sidebar-muted); font-size: .85rem; }
 
-.management-workspace { min-width: 0; }
+/* Las consultas de contenedor descuentan el espacio que ocupa el menú lateral. */
+.management-workspace {
+  container: gestion / inline-size;
+  width: 100%;
+  min-width: 0;
+}
 .management-topbar {
   position: sticky;
   top: 0;
   z-index: 20;
   min-height: var(--management-header-height);
+  padding: 1rem var(--management-gutter);
   gap: 1rem;
+  flex-wrap: wrap;
 }
-.management-topbar__heading { display: flex; align-items: center; gap: 1rem; }
-.management-topbar .topbar-actions { flex-wrap: wrap; justify-content: flex-end; gap: 1rem; min-width: 0; }
-.management-topbar .user { min-width: 0; }
+.management-topbar__heading { display: flex; align-items: center; flex: 1 1 14rem; gap: 1rem; min-width: 0; }
+.management-topbar .brand { font-size: clamp(1.1rem, 1.25vw, 1.5rem); overflow-wrap: anywhere; }
+.management-topbar .topbar-actions { flex: 1 1 30rem; flex-wrap: wrap; justify-content: flex-end; gap: 1rem; min-width: 0; }
+.management-topbar .user { flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }
 .management-topbar .user-mail { overflow-wrap: anywhere; }
 .management-shell .management-menu-toggle { display: none; }
-.management-shell .side { top: calc(var(--management-header-height) + 1rem); min-width: 0; }
-.management-shell .fields dd { overflow-wrap: anywhere; }
-.management-shell .layout > .panel { min-width: 0; }
-.management-shell .dashboard-cards > * { min-width: 0; }
-.management-shell .dashboard-cards strong { overflow-wrap: anywhere; }
 
-.reports-page { display: grid; gap: 1.5rem; padding: 1.5rem; }
-.management-page-heading h1 { margin: 0; font-size: 2rem; }
+.management-shell .layout,
+.management-shell .dashboard,
+.management-shell .reports-page {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: var(--management-gutter);
+  gap: var(--management-gap);
+}
+.management-shell .layout { grid-template-columns: minmax(0, 1fr); }
+.management-shell .layout > .panel { min-width: 0; padding: clamp(1rem, 1.25vw, 2rem); }
+.management-shell .side { position: static; container: detalle / inline-size; }
+.management-shell .products-page {
+  min-width: 0;
+  width: auto;
+  max-width: none;
+  margin: var(--management-gutter);
+  padding: clamp(1rem, 1.25vw, 2rem);
+}
+.management-shell .panel { min-width: 0; }
+.management-shell .management-workspace > .alert { margin-inline: var(--management-gutter); }
+.management-shell h1 { font-size: clamp(1.75rem, 2vw, 2.75rem); overflow-wrap: anywhere; }
+.management-shell h2 { font-size: clamp(1.25rem, 1.4vw, 1.6rem); overflow-wrap: anywhere; }
+.management-shell .empty { padding: clamp(2rem, 4vw, 5rem) 1rem; }
+.management-shell .btn { min-height: 2.75rem; max-width: 100%; overflow-wrap: anywhere; }
+.management-shell input,
+.management-shell select,
+.management-shell textarea { width: 100%; min-width: 0; min-height: 2.75rem; max-width: 100%; }
+.management-shell textarea { resize: vertical; }
+.management-shell label { min-width: 0; }
+.management-shell .form .grid,
+.management-shell .catalog-form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+.management-shell .catalog-check { flex-direction: row; align-self: center; }
+.management-shell .catalog-check input { width: auto; min-height: auto; }
+.management-shell .filters { gap: 1rem; }
+.management-shell .filters label { flex: 1 1 11rem; }
+.management-shell .filters > .btn { flex: 0 1 auto; }
+.management-shell .fields { grid-template-columns: minmax(6rem, .35fr) minmax(0, 1fr); }
+.management-shell .fields dt,
+.management-shell .fields dd { min-width: 0; overflow-wrap: anywhere; }
+.management-shell .detail-head { flex-wrap: wrap; }
+.management-shell .technical-total { width: min(100%, 24rem); min-width: 0; }
+.management-shell .technical-total dd { overflow-wrap: anywhere; }
+.management-shell .selected-product {
+  grid-template-columns: minmax(0, 1fr) minmax(4.5rem, 6rem) auto auto;
+  gap: 1rem;
+}
+.management-shell .selected-product > * { min-width: 0; overflow-wrap: anywhere; }
+.management-shell .selected-product .btn { align-self: end; }
+.management-shell .catalog-drawer { width: min(36rem, 100%); padding: var(--management-gutter); }
+.management-shell .catalog-product { grid-template-columns: minmax(0, 1fr); overflow-wrap: anywhere; }
+
+/* Las tablas se desplazan dentro de su panel, no ensanchan toda la página. */
+.management-shell .table-wrap { width: 100%; max-width: 100%; min-width: 0; overflow-x: auto; }
+.management-shell .table-wrap table { min-width: 42rem; }
+.management-shell th,
+.management-shell td { overflow-wrap: anywhere; vertical-align: top; }
+.management-shell th { white-space: nowrap; overflow-wrap: normal; }
+.management-shell .num { white-space: nowrap; }
+.management-shell .table-wrap--orders table { min-width: 60rem; table-layout: fixed; }
+.management-shell .table-wrap--orders th:nth-child(1) { width: 4rem; }
+.management-shell .table-wrap--orders th:nth-child(2) { width: 7rem; }
+.management-shell .table-wrap--orders th:nth-child(4) { width: 5rem; }
+.management-shell .table-wrap--orders th:nth-child(5) { width: 11rem; }
+.management-shell .table-wrap--orders th:nth-child(6) { width: 8rem; }
+.management-shell .table-wrap--orders th:nth-child(7) { width: 13rem; }
+.management-shell .table-wrap--audit table { min-width: 64rem; table-layout: fixed; }
+.management-shell .table-wrap--audit th:nth-child(1) { width: 12rem; }
+.management-shell .table-wrap--audit th:nth-child(2) { width: 6rem; }
+.management-shell .table-wrap--audit th:nth-child(3) { width: 12rem; }
+.management-shell .table-wrap--audit th:nth-child(5) { width: 14rem; }
+.management-shell .table-wrap--items table { min-width: 28rem; }
+.management-shell .table-wrap--items td:first-child { min-width: 10rem; }
+.management-shell .dashboard-heading { flex-direction: row; flex-wrap: wrap; align-items: end; }
+.management-shell .dashboard-heading > div:first-child { flex: 1 1 22rem; min-width: 0; }
+.management-shell .dashboard-range { flex: 1 1 24rem; flex-wrap: wrap; justify-content: flex-end; }
+.management-shell .dashboard-range label { flex: 1 1 10rem; }
+.management-shell .dashboard-cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--management-gap);
+}
+.management-shell .dashboard-cards > * {
+  container-type: inline-size;
+  min-width: 0;
+  min-height: clamp(10rem, 10vw, 15rem);
+  padding: clamp(1.25rem, 1.5vw, 2.5rem);
+}
+.management-shell .dashboard-cards strong { font-size: clamp(1.5rem, 8cqi, 3rem); overflow-wrap: anywhere; }
+.management-shell .dashboard-cards small { margin-top: auto; }
+.management-shell .dashboard > .panel { padding: clamp(1rem, 1.25vw, 2rem); }
+.management-shell .dashboard > .panel .table-wrap { margin-top: 1rem; }
+
+.reports-page { display: grid; }
+.management-page-heading h1 { margin: 0; }
 .management-page-heading p { margin-bottom: 0; color: var(--muted); }
 .reports-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 1rem; }
-.reports-filters label { min-width: 12rem; flex: 1; }
-.reports-filters input, .reports-filters button { min-height: 2.75rem; }
+.reports-filters label { flex: 1 1 12rem; }
 .reports-page .alert { margin: 0; }
 .reports-empty { display: grid; align-content: center; justify-items: center; min-height: 18rem; padding: 2rem; text-align: center; }
 .reports-empty p, .reports-result header p { color: var(--muted); }
-.reports-result { padding: 1.5rem; }
-.reports-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1.5rem 0; }
-.reports-metrics > div { padding: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
+.reports-result { padding: clamp(1rem, 1.5vw, 2.5rem); }
+.reports-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--management-gap); margin: 1.5rem 0; }
+.reports-metrics > div { min-width: 0; padding: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
 .reports-metrics dt { color: var(--muted); }
-.reports-metrics dd { margin: .75rem 0 0; font-size: 2rem; font-weight: 700; overflow-wrap: anywhere; }
+.reports-metrics dd { margin: .75rem 0 0; font-size: clamp(2rem, 2.4vw, 3.5rem); font-weight: 700; overflow-wrap: anywhere; }
 
-@media (max-width: 1200px) {
-  .management-shell .layout { grid-template-columns: minmax(0, 1fr); }
-  .management-shell .side { position: static; }
-  .management-topbar { align-items: start; }
-  .management-topbar .topbar-actions { flex: 1; }
-  .management-shell .dashboard-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@container gestion (min-width: 76rem) {
+  .management-shell .layout { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); }
+}
+@container detalle (max-width: 34rem) {
+  .management-shell .selected-product { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .management-shell .selected-product > span { grid-column: 1 / -1; }
+  .management-shell .selected-product > .btn { justify-self: start; }
+}
+@container detalle (max-width: 24rem) {
+  .management-shell .fields { grid-template-columns: minmax(0, 1fr); gap: .35rem; }
+  .management-shell .fields dd + dt { margin-top: .75rem; }
 }
 
 @media (max-width: 900px) {
   .management-shell { display: flex; flex-direction: column; align-items: stretch; }
   .management-workspace { display: contents; }
-  .management-topbar { order: 0; flex-wrap: wrap; }
-  .management-shell .management-menu-toggle { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; }
+  .management-topbar { order: 0; }
+  .management-shell .management-menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
   .management-sidebar { position: static; order: 1; display: none; height: auto; padding: 1rem; }
   .management-sidebar.is-open { display: block; }
   .management-sidebar__brand, .management-sidebar__footer { display: none; }
-  .management-navigation { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .management-navigation { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
   .management-navigation__label { grid-column: 1 / -1; }
   .management-workspace > :not(.management-topbar) { order: 2; }
 }
-
 @media (max-width: 560px) {
-  .management-topbar { padding: 1rem; }
-  .management-topbar .topbar-actions { width: 100%; flex-basis: 100%; justify-content: space-between; }
-  .management-topbar .user { order: -1; flex: 1 0 100%; align-items: flex-start; padding-left: 0; border-left: 0; }
-  .management-shell .layout, .management-shell .dashboard, .reports-page { padding: 1rem; }
-  .management-shell .products-page { margin: 1rem; }
-  .management-shell .dashboard-cards, .reports-metrics { grid-template-columns: minmax(0, 1fr); }
+  .management-topbar__heading { flex-basis: 100%; }
+  .management-topbar .topbar-actions { flex-basis: 100%; justify-content: space-between; }
+  .management-topbar .user { order: -1; flex-basis: 100%; align-items: flex-start; padding-left: 0; border-left: 0; }
+  .management-shell .filters > .btn { flex: 1 1 100%; }
+  .management-shell .dashboard-range { flex-direction: row; }
   .reports-filters { align-items: stretch; flex-direction: column; }
-  .reports-filters label { min-width: 0; }
+  .reports-filters label { flex-basis: auto; }
+  .management-shell .actions.footer > .btn { flex: 1 1 10rem; }
 }
-
 @media (prefers-reduced-motion: reduce) {
   .management-navigation__item { transition: none; }
 }

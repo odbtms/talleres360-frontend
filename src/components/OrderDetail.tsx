@@ -48,6 +48,7 @@ export default function OrderDetail({
       {order.items.length === 0 ? (
         <p className="muted">Sin ítems.</p>
       ) : (
+        <div className="table-wrap table-wrap--items" role="region" aria-label="Repuestos de la orden" tabIndex={0}>
         <table className="items">
           <thead>
             <tr><th>Producto</th><th className="num">Cant.</th><th className="num">Precio</th><th className="num">Subtotal</th></tr>
@@ -66,6 +67,7 @@ export default function OrderDetail({
             <tr><td colSpan={3}>Total</td><td className="num">{formatMoney(order.total)}</td></tr>
           </tfoot>
         </table>
+        </div>
       )}
 
       <dl className="fields timeline">
