@@ -1,0 +1,15 @@
+.booking-success { padding: clamp(24px, 5vw, 60px); }
+.calendar-message { padding: 0 16px; }
+.booking-fields label, .booking-fields > *, .booking-summary > * { min-width: 0; }
+.booking-fields input, .booking-fields select, .booking-fields textarea { box-sizing: border-box; }
+.booking-step__heading h2:focus { outline: none; }
+.booking-button:focus-visible, .appointment-calendar button:focus-visible { outline: 3px solid #f97316; outline-offset: 2px; }
+@media (max-width: 560px) {
+  .appointment-calendar__legend { gap: 8px; flex-wrap: wrap; }
+  .appointment-calendar__toolbar { padding: 12px 8px; }
+  .appointment-calendar__toolbar strong { font-size: 18px; }
+  .appointment-calendar__grid button { min-height: 46px; }
+  .booking-actions .btn { flex: 1 1 110px; }
+  .booking-summary dl { grid-template-columns: 1fr; }
+  .booking-summary dd { margin-bottom: 8px; }
+}

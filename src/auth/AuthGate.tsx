@@ -13,8 +13,6 @@ interface AuthGateProps {
   children: (session: Session) => ReactNode;
 }
 
-const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
-
 // Login real con Entra ID: sin cuenta muestra el login; con cuenta adjunta el token a cada request
 function MsalAuthGate({ children }: AuthGateProps) {
   const { instance, accounts, inProgress } = useMsal();
@@ -25,6 +23,7 @@ function MsalAuthGate({ children }: AuthGateProps) {
 
   useEffect(() => {
     if (!account) {
+      setTokenProvider(async () => null);
       setRoles(null);
       return undefined;
     }
@@ -32,9 +31,9 @@ function MsalAuthGate({ children }: AuthGateProps) {
     setTokenProvider(async () => (await obtenerToken(instance, account)).accessToken);
     obtenerToken(instance, account)
       .then((result) => active && setRoles(rolesFromToken(result.accessToken)))
-      .catch((e: unknown) => {
+      .catch(() => {
         if (!active) return;
-        setError(errorMessage(e));
+        setError('No se pudo validar tu sesión. Cierra sesión e inténtalo nuevamente.');
         setRoles([]);
       });
     return () => {
@@ -73,7 +72,8 @@ function MsalAuthGate({ children }: AuthGateProps) {
     );
   }
   // Se espera a registrar el token antes de montar la app, para que la primera llamada ya lo lleve
-  if (roles === null) return null;
+  if (roles === null) return <p className="reviews-status" role="status">Validando tu sesión…</p>;
+  if (!roles.some((role) => ['Admin', 'Operador', 'Cliente'].includes(role))) return <main className="reviews-page"><h1>No se pudo acceder a tu cuenta</h1><p role="alert">{error || 'Tu cuenta no tiene un rol habilitado para esta aplicación.'}</p><button className="btn primary" onClick={() => instance.logoutPopup({ account }).catch(() => setError('No se pudo cerrar la sesión. Inténtalo nuevamente.'))}>Cerrar sesión</button></main>;
 
   const session: Session = {
     name: account.name || account.username,

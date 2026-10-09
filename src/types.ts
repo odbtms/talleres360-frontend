@@ -12,22 +12,24 @@ export type AppRole = 'Admin' | 'Operador' | 'Cliente';
 export interface OrderItem {
   id: number;
   productId: number;
+  description: string | null;
   quantity: number;
   unitPrice: number;
   subtotal: number;
 }
 
-// El precio lo toma el front del catalogo (ms-catalog) al asignar el repuesto
+// Solo se envía producto y cantidad: el servidor obtiene el precio del catálogo.
 export interface OrderItemInput {
   productId: number;
   quantity: number;
-  unitPrice: number;
 }
 
 export interface OrderPayload {
   workshopId: number;
   customerName: string;
   customerEmail: string;
+  customerRut: string;
+  customerPhone: string;
   vehiclePlate: string;
   vehicleModel: string;
   description: string;
@@ -39,6 +41,17 @@ export interface Order {
   workshopId: number;
   customerName: string;
   customerEmail: string;
+  customerRut: string;
+  customerPhone: string;
+  vehicleYear: number | null;
+  serviceType: 'MAINTENANCE' | 'DIAGNOSTICS' | null;
+  regionId: string | null;
+  appointmentDate: string | null;
+  diagnosis: string | null;
+  workPerformed: string | null;
+  laborCost: number;
+  estimatedDeliveryDate: string | null;
+  technicalUpdatedAt: string | null;
   vehiclePlate: string;
   vehicleModel: string | null;
   description: string | null;
@@ -49,6 +62,21 @@ export interface Order {
   updatedAt: string;
   acceptedAt: string | null;
   deliveredAt: string | null;
+}
+
+export interface TechnicalPayload {
+  diagnosis: string;
+  workPerformed: string;
+  laborCost: number;
+  estimatedDeliveryDate: string;
+  items: OrderItemInput[];
+}
+
+export interface StockConfirmation {
+  revision: number;
+  confirmedRevision: number;
+  pending: boolean;
+  quantities: Record<string, number>;
 }
 
 export interface Product { id: number; sku: string; name: string; stock: number; price: number; active: boolean; available: boolean; }

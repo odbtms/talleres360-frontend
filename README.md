@@ -2,7 +2,7 @@
 
 Aplicación React + TypeScript para gestionar órdenes de trabajo, repuestos y ventas de la red Talleres360. Incluye sitio público, historial del cliente y paneles por rol. Microsoft Entra ID proporciona el inicio de sesión; todas las llamadas pasan por API Gateway y el BFF.
 
-Interfaz diseñada por Emmanuel (rama `fronted`) y adaptada al backend de este proyecto: `ms-talleres360-orders` (repo [talleres360-backend](https://github.com/odbtms/talleres360-backend)), [talleres360-catalog](https://github.com/odbtms/talleres360-catalog), [talleres360-report](https://github.com/odbtms/talleres360-report) y [talleres360-bff](https://github.com/odbtms/talleres360-bff).
+La rama de trabajo es `fronted`. Consume el [BFF](https://github.com/EmmanuelhxGG/talleres360-bff) y los cinco microservicios independientes de Emmanuel: [Órdenes](https://github.com/EmmanuelhxGG/ms-ordenes-talleres360), [Catálogo](https://github.com/EmmanuelhxGG/ms-catalogo-talleres360), [Reportes](https://github.com/EmmanuelhxGG/ms-reportes-talleres360), [Notificaciones](https://github.com/EmmanuelhxGG/ms-notificaciones-talleres360) y [Auditoría](https://github.com/EmmanuelhxGG/ms-auditoria-talleres360).
 
 ## Tecnologías
 
@@ -14,7 +14,9 @@ React 19, TypeScript 7, Vite 8 y MSAL Browser/React. Estilos CSS con variables d
 Frontend local :5173 → API Gateway HTTPS (JWT) → BFF :8080 (JWT + rol)
                                                 ├── Órdenes :8081
                                                 ├── Catálogo :8082   (X-Internal-Key)
-                                                └── Reportería :8083 (X-Internal-Key)
+                                                ├── Reportería :8083 (X-Internal-Key)
+                                                ├── Notificaciones :8084 (X-Internal-Key)
+                                                └── Auditoría :8085 (X-Internal-Key)
 ```
 
 En AWS, cada microservicio tiene su EC2 y PostgreSQL; BFF ocupa otra EC2. El frontend permanece local.
@@ -26,22 +28,37 @@ Para desarrollo también puede consumirse BFF directamente en `http://localhost:
 ### Sitio público y Cliente
 
 - Inicio con presentación, fotografías y acceso al login. Header con Inicio, Agendamiento, Servicios y Nosotros; con sesión de cliente incorpora Mi revisión técnica.
-- Agendamiento es informativo: el cliente se acerca o llama al taller y un operador registra la orden con su correo (ms-orders no tiene agendamiento online).
-- **Mi revisión técnica** (`/mis-revisiones`) lista las órdenes registradas con el correo de la cuenta (`GET /api/orders` filtrado en el navegador), con estado, vehículo, taller, fechas y total.
+- Agendamiento online para mantenciones/arreglos o diagnóstico: cinco pasos de vehículo, propietario, servicio/taller, fecha y resumen. Tres regiones y veinte talleres. El correo se muestra desde la sesión y el BFF obtiene la identidad del JWT al confirmar mediante `POST /api/appointments`.
+- Calendario mensual grande: blanco disponible, gris no disponible y amarillo seleccionado. Consulta `GET /api/appointments/availability`; no inventa ocupación. El servicio actual no aplica cupos diarios ni horas de atención.
+- **Mi revisión técnica** (`/mis-revisiones`) utiliza `GET /api/appointments`. El servidor entrega únicamente solicitudes de la cuenta; incluye tipo de revisión, región, taller, motivo, fechas, diagnóstico y total.
 
 Rutas: `/`, `/agendamiento` y `/mis-revisiones`.
 
 ### Operador
 
-Consulta y crea órdenes; acepta o rechaza solicitudes y avanza el trabajo hasta la entrega. Mientras la orden está **Recibida** puede asignar repuestos del catálogo (precio automático, cantidad validada contra el stock). No puede eliminar.
+Consulta y crea órdenes con RUT, teléfono y patente validados; acepta o rechaza solicitudes y avanza el trabajo hasta la entrega. En **Recibida** asigna repuestos. Después de aceptar, registra diagnóstico, trabajo realizado, mano de obra, entrega estimada y repuestos mediante `/api/orders/{id}/technical`. Consulta confirmación de stock antes de permitir la entrega. No puede eliminar.
+
+Incluye **Notificaciones** en el menú izquierdo: tickets del taller, filtro por número de orden, mensaje desplegable, estados, paginación y actualización manual.
 
 ### Admin
 
 Menú izquierdo con **Dashboard, Órdenes, Productos y Hacer reporte**. Además de lo del operador, elimina órdenes y administra SKU, nombre, precio, stock y estado activo de los productos.
 
+Incluye **Auditoría**, una línea de tiempo de solo lectura con filtros por orden, usuario, tipo de evento y rango de fechas, paginación y detalle de trazabilidad. El acceso Admin sigue la sección de pantallas del caso; no requiere crear un rol Auditor adicional en Azure.
+
+### Seguimiento de notificaciones y auditoría
+
+Cliente dispone de **Notificaciones** en su header y en `/notificaciones`. Solo consulta avisos dirigidos al correo de su identidad autenticada. Operador consulta tickets; Admin consulta auditoría, no notificaciones. Las páginas muestran carga, ausencia de resultados y errores personalizados con opción de reintentar. Son adaptables al ancho disponible y utilizan variables del tema existente.
+
+Este módulo utiliza los contratos paginados de `ms-notificaciones-talleres360` y `ms-auditoria-talleres360` de Emmanuel y sus rutas en `talleres360-bff`. Consume `GET /api/notifications` y `GET /api/audit` mediante la misma `VITE_API_BASE_URL`; no incorpora URLs privadas ni claves de microservicios al navegador. El BFF y los servicios aplican los permisos y el filtro por propietario; no se confía en filtrar datos ajenos después de descargarlos.
+
+`ENVIADA` indica aceptación del proveedor SMTP, no recepción en la bandeja. `PENDIENTE` no se presenta como correo enviado. El frontend consulta información almacenada y no crea notificaciones ni modifica auditorías.
+
 **Nueva orden permanece en la cabecera** para Admin y Operador. El menú y la sesión se mantienen al cambiar de sección.
 
-El dashboard muestra órdenes registradas, entregas e ingresos del período, productos activos con stock de cinco o menos y los eventos recientes de auditoría. Hacer reporte consulta cantidad de entregas e ingresos de un período. Como ms-orders todavía no publica eventos a Reportería, ventas y auditoría aparecen en cero.
+El dashboard muestra órdenes registradas, entregas e ingresos del período, productos activos con stock de cinco o menos y los eventos recientes de auditoría. Hacer reporte consulta cantidad de entregas e ingresos de un período. Los valores proceden de los servicios conectados al BFF; el alias de auditoría del dashboard se dirige al microservicio de Auditoría en la integración de Emmanuel.
+
+El administrador debe justificar sus cambios de estado con al menos diez caracteres. Las fechas de aceptación, entrega y actualización técnica las registra el servidor. Los formularios envían identificadores y cantidades de productos; el precio y el total definitivo los calcula Órdenes con Catálogo.
 
 ## Estructura de archivos
 
@@ -54,9 +71,12 @@ El dashboard muestra órdenes registradas, entregas e ingresos del período, pro
 | `src/api/ordersApi.ts` | CRUD y cambio de estado de órdenes (ms-orders). |
 | `src/api/productsApi.ts`, `reportsApi.ts` | Catálogo, ventas y auditoría. |
 | `src/features/home/` | Inicio, header público y página de agendamiento. |
-| `src/features/scheduling/` | Talleres, regiones y validaciones de formato (patente). |
+| `src/features/scheduling/` | Formulario de cinco pasos, calendario, talleres, regiones y validaciones. |
+| `src/api/appointmentsApi.ts` | Crear solicitudes, consultar las propias y disponibilidad. |
 | `src/features/client/` | Mi revisión técnica. |
 | `src/features/reports/` | Página, hook y tratamiento de fechas del reporte. |
+| `src/features/seguimiento/` | Páginas de notificaciones y auditoría, contratos, constantes, hook cancelable y paginación compartida. |
+| `src/api/seguimientoApi.ts` | Consultas de seguimiento y filtros; fechas locales convertidas a límites UTC. |
 | `src/components/` | Lista, filtros, detalle y formularios de órdenes (`OrderItemsForm` asigna repuestos); productos y dashboard. |
 | `src/layouts/MenuLateral.tsx` | Navegación lateral del panel. |
 | `src/constants/` | Estados de órdenes y opciones de navegación por rol. |
@@ -129,7 +149,7 @@ El resultado queda en `dist/`. `npm run preview` permite revisar ese build; el o
 
 ## Conexión con AWS y CORS
 
-`VITE_API_BASE_URL` apunta a **API Gateway**, que reenvía las peticiones al BFF. El stage es `$default`, así que la URL va sin sufijo.
+`VITE_API_BASE_URL` apunta a **API Gateway**, que reenvía las peticiones al BFF. Incluye el stage si tiene nombre (por ejemplo `/dev`); con `$default` no se agrega sufijo.
 
 Gateway debe enviar `/api/...` al BFF, sin agregar el prefijo de stage. El autorizador JWT utiliza issuer `https://login.microsoftonline.com/<TENANT_ID>/v2.0`, audiencia del registro API y scope `access_as_user`.
 
@@ -137,7 +157,7 @@ El preflight `OPTIONS` debe responder sin exigir token. Autoriza el origen exact
 
 Si cambia:
 
-- **Una IP privada de un micro:** actualiza `ORDERS_URL`, `CATALOG_URL` o `REPORT_URL` en el `.env` del BFF.
+- **Una IP privada de un micro:** actualiza su `ORDERS_URL`, `CATALOG_URL`, `REPORT_URL`, `NOTIFICATIONS_URL` o `AUDIT_URL` en el `.env` del BFF y las referencias correspondientes en Órdenes.
 - **La dirección pública del BFF:** actualiza la integración Gateway.
 - **Gateway o stage:** actualiza `VITE_API_BASE_URL`.
 - **El origen del frontend:** registra su `/redirect.html` en Entra y autoriza ese origen en CORS.
@@ -147,8 +167,9 @@ Si cambia:
 Las reglas las decide el backend y el front solo las refleja:
 
 - Estados: `RECIBIDA → ACEPTADA → EN_REPARACION → LISTA_PARA_ENTREGA → ENTREGADA`; `CANCELADA` desde cualquiera antes de entregar. Una transición inválida devuelve **409** (por ejemplo, entregar sin aceptar). El detalle solo muestra los botones válidos (`src/constants/orderStatus.ts`).
-- Editar (incluidos los repuestos) solo en `RECIBIDA`; si no, 409.
-- Los ítems se envían con `productId`, `quantity` y `unitPrice` (precio del catálogo al asignar). ms-orders aún no descuenta stock en Catálogo.
-- Permisos (BFF): órdenes GET Admin/Operador/Cliente, POST/PUT Admin/Operador, DELETE Admin; productos GET Admin/Operador, POST/PUT Admin; reportes solo Admin.
+- Editar datos generales en `RECIBIDA`; informe técnico en `ACEPTADA`, `EN_REPARACION` o `LISTA_PARA_ENTREGA`.
+- Ítems: solo `productId` y `quantity`. El servidor obtiene precios; Catálogo confirma reservas mediante el outbox de Órdenes. La entrega espera la confirmación y no descuenta por segunda vez.
+- Patente: seis caracteres alfanuméricos separados en pares. Modelo: letras, números y espacios. Nombre: letras y espacios. Teléfono: ocho números después de +56 9. RUT: dígito verificador Módulo 11; no demuestra existencia ni identidad. Fecha: desde mañana hasta noventa días.
+- Permisos (BFF): solicitudes propias GET/POST Cliente; órdenes GET/POST/PUT Admin/Operador, DELETE Admin; productos GET Admin/Operador, POST/PUT Admin; reportes y auditoría Admin; notificaciones Operador/Cliente.
 
-Una respuesta 401 requiere revisar sesión, issuer y audiencia; una 403, scope/roles (o CORS en el preflight). Los mensajes del backend (`ProblemDetail.detail`) se muestran en la alerta superior.
+Una respuesta 401 requiere revisar sesión, issuer y audiencia; una 403, scope/roles. Se muestran errores personalizados sin exponer endpoints, excepciones ni mensajes internos de autenticación. El build y la comprobación de tipos no sustituyen las pruebas del flujo autenticado en AWS.

@@ -27,6 +27,7 @@ export default function PublicHeader({
       <nav className="public-navigation" aria-label="Navegación principal">
         <a href="/">Inicio</a>
         {showClientNavigation && <a href="/mis-revisiones">Mi revisión técnica</a>}
+        {showClientNavigation && <a href="/notificaciones">Notificaciones</a>}
         <a href="/agendamiento">Agendamiento</a>
         <a href="/#servicios">Servicios</a>
         <a href="/#nosotros">Nosotros</a>

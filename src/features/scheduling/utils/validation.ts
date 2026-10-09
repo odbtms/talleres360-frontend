@@ -11,9 +11,9 @@ export function formatPlateInput(value: string): string {
 
 export function formatRutInput(value: string): string {
   const raw = value.toUpperCase().replace(/[^0-9K]/g, '');
-  const hasK = raw.endsWith('K');
-  const digits = raw.replace(/K/g, '').slice(0, 8);
-  const clean = `${digits}${hasK ? 'K' : ''}`;
+  const clean = raw.endsWith('K')
+    ? `${raw.slice(0, -1).replace(/K/g, '').slice(0, 8)}K`
+    : raw.replace(/K/g, '').slice(0, 9);
   if (clean.length < 2) return clean;
   const body = clean.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return `${body}-${clean.slice(-1)}`;
@@ -23,6 +23,7 @@ export function isValidRut(value: string): boolean {
   const clean = value.toUpperCase().replace(/[^0-9K]/g, '');
   if (!/^\d{7,8}[0-9K]$/.test(clean)) return false;
   const body = clean.slice(0, -1);
+  if (Number(body) === 0) return false;
   const suppliedDigit = clean.slice(-1);
   let sum = 0;
   let multiplier = 2;
@@ -35,11 +36,15 @@ export function isValidRut(value: string): boolean {
   return suppliedDigit === expectedDigit;
 }
 
+export function localDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 function dateAfter(days: number): string {
   const date = new Date();
   date.setHours(12, 0, 0, 0);
   date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
+  return localDate(date);
 }
 
 export const minimumAppointmentDate = () => dateAfter(1);

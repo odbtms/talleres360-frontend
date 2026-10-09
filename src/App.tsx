@@ -10,10 +10,12 @@ import ProductsPage from './components/ProductsPage';
 import AdminDashboard from './components/AdminDashboard';
 import MenuLateral from './layouts/MenuLateral';
 import ReportesPage from './features/reports/pages/ReportesPage';
+import NotificacionesPage from './features/seguimiento/pages/NotificacionesPage';
+import AuditoriaPage from './features/seguimiento/pages/AuditoriaPage';
 import { OPCIONES_GESTION, TITULOS_GESTION } from './constants/navegacionGestion';
 import type { DestinoGestion, VistaGestion } from './types/gestion';
 import { permissionsFor } from './auth/roles';
-import type { Order, OrderFilters as OrderFiltersValue, OrderPayload, OrderStatus, Session } from './types';
+import type { Order, OrderFilters as OrderFiltersValue, OrderPayload, OrderStatus, Session, TechnicalPayload } from './types';
 
 const EMPTY_FILTERS: OrderFiltersValue = { status: '', from: '', to: '' };
 
@@ -23,12 +25,18 @@ interface AppProps {
 
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
+function vistaInicial(session: Session): VistaGestion {
+  if (window.location.pathname === '/audit' && session.roles.includes('Admin')) return 'audit';
+  if (window.location.pathname === '/notificaciones' && session.roles.includes('Operador')) return 'notifications';
+  return session.roles.includes('Admin') ? 'dashboard' : 'orders';
+}
+
 export default function App({ session }: AppProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [selected, setSelected] = useState<Order | null>(null);
   const [formMode, setFormMode] = useState<'create' | 'items' | null>(null);
-  const [view, setView] = useState<VistaGestion>(session.roles.includes('Admin') ? 'dashboard' : 'orders');
+  const [view, setView] = useState<VistaGestion>(() => vistaInicial(session));
   const [menuAbierto, setMenuAbierto] = useState(false);
   const botonMenu = useRef<HTMLButtonElement>(null);
   const [loading, setLoading] = useState(false);
@@ -43,7 +51,15 @@ export default function App({ session }: AppProps) {
     setError('');
     setView(destino === 'new-order' ? 'orders' : destino);
     setFormMode(destino === 'new-order' ? 'create' : null);
+    const ruta = destino === 'audit' ? '/audit' : destino === 'notifications' ? '/notificaciones' : '/';
+    if (window.location.pathname !== ruta) window.history.pushState(null, '', ruta);
   }
+
+  useEffect(() => {
+    const volver = () => { setView(vistaInicial(session)); setFormMode(null); setMenuAbierto(false); };
+    window.addEventListener('popstate', volver);
+    return () => window.removeEventListener('popstate', volver);
+  }, [session]);
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
@@ -86,8 +102,14 @@ export default function App({ session }: AppProps) {
     if (saved) { setSelected(saved); setFormMode(null); }
   }
 
-  async function handleChangeStatus(status: OrderStatus) {
-    const updated = await run(() => ordersApi.changeStatus(selected!.id, status));
+  async function handleTechnicalSave(payload: TechnicalPayload) {
+    if (!selected) return;
+    const saved = await run(() => ordersApi.technical(selected.id, payload));
+    if (saved) { setSelected(saved); setFormMode(null); }
+  }
+
+  async function handleChangeStatus(status: OrderStatus, reason?: string) {
+    const updated = await run(() => ordersApi.changeStatus(selected!.id, status, reason));
     if (updated) setSelected(updated);
   }
 
@@ -141,7 +163,9 @@ export default function App({ session }: AppProps) {
 
       {view === 'dashboard' ? <AdminDashboard onOpenOrders={() => navegar('orders')} onOpenProducts={() => navegar('products')} />
         : view === 'products' ? <ProductsPage />
-        : view === 'reports' ? <ReportesPage /> : <main className="layout">
+        : view === 'reports' ? <ReportesPage />
+        : view === 'notifications' ? <NotificacionesPage session={session} />
+        : view === 'audit' ? <AuditoriaPage session={session} /> : <main className="layout">
         <section className="panel">
           <OrderFilters value={filters} onChange={setFilters} onReset={() => setFilters(EMPTY_FILTERS)} />
           <OrderList orders={orders} loading={loading} selectedId={selected?.id} onSelect={selectOrder} />
@@ -156,12 +180,14 @@ export default function App({ session }: AppProps) {
               onCancel={() => setFormMode(null)}
             />
           ) : formMode === 'items' && selected ? (
-            <OrderItemsForm order={selected} onSubmit={handleItemsSave} onCancel={() => setFormMode(null)} />
+            <OrderItemsForm key={selected.id} order={selected} onSubmit={handleItemsSave} onTechnicalSubmit={selected.status !== 'RECIBIDA' ? handleTechnicalSave : undefined} onCancel={() => setFormMode(null)} />
           ) : selected ? (
             <OrderDetail
+              key={`${selected.id}-${selected.updatedAt}`}
               order={selected}
               canWrite={canWrite}
               canDelete={canDelete}
+              isAdmin={session.roles.includes('Admin')}
               onChangeStatus={handleChangeStatus}
               onEdit={() => setFormMode('items')}
               onDelete={handleDelete}

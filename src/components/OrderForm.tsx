@@ -1,11 +1,14 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import type { Order, OrderPayload } from '../types';
-import { formatPlateInput } from '../features/scheduling/utils/validation';
+import { formatPlateInput, formatRutInput, isValidRut } from '../features/scheduling/utils/validation';
+import { WORKSHOPS } from '../features/scheduling/constants/workshops';
 
 interface OrderFormState {
   workshopId: number | string;
   customerName: string;
   customerEmail: string;
+  customerRut: string;
+  customerPhone: string;
   vehiclePlate: string;
   vehicleModel: string;
   description: string;
@@ -21,13 +24,15 @@ function toForm(order: Order | null): OrderFormState {
   if (!order) {
     return {
       workshopId: 1, customerName: '', customerEmail: '', vehiclePlate: '',
-      vehicleModel: '', description: '',
+      vehicleModel: '', description: '', customerRut: '', customerPhone: '',
     };
   }
   return {
     workshopId: order.workshopId,
     customerName: order.customerName,
     customerEmail: order.customerEmail,
+    customerRut: order.customerRut,
+    customerPhone: order.customerPhone,
     vehiclePlate: order.vehiclePlate,
     vehicleModel: order.vehicleModel ?? '',
     description: order.description ?? '',
@@ -40,18 +45,24 @@ export default function OrderForm({ initial, onSubmit, onCancel }: OrderFormProp
   const [validationError, setValidationError] = useState('');
 
   const set = (field: keyof OrderFormState) =>
-    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm({ ...form, [field]: e.target.value });
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setForm({ ...form, [field]: e.target.value });
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setValidationError('');
+    if (!isValidRut(form.customerRut) || !/^\d{8}$/.test(form.customerPhone) || !/^[A-Z0-9]{2}-[A-Z0-9]{2}-[A-Z0-9]{2}$/.test(form.vehiclePlate) || !/^[\p{L} ]{2,120}$/u.test(form.customerName.trim()) || !/^[\p{L}\p{N} ]{2,120}$/u.test(form.vehicleModel.trim()) || form.description.trim().length < 10) {
+      setValidationError('Revisa el RUT, teléfono, nombre, patente, modelo y descripción. El RUT debe tener un dígito verificador válido y el teléfono exactamente 8 números.'); return;
+    }
     setSaving(true);
-    await onSubmit({
+    try { await onSubmit({
       ...form,
       workshopId: Number(form.workshopId),
+      customerName: form.customerName.trim(),
+      customerEmail: form.customerEmail.trim(),
+      vehicleModel: form.vehicleModel.trim(),
+      description: form.description.trim(),
       items: [],
-    });
-    setSaving(false);
+    }); } finally { setSaving(false); }
   }
 
   return (
@@ -60,11 +71,13 @@ export default function OrderForm({ initial, onSubmit, onCancel }: OrderFormProp
       {validationError && <p className="field-error" role="alert">{validationError}</p>}
 
       <div className="grid">
-        <label>Cliente<input required minLength={2} maxLength={120} value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value.replace(/[^\p{L} '-]/gu, '').slice(0, 120) })} /></label>
+        <label>Cliente<input required minLength={2} maxLength={120} value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value.replace(/[^\p{L} ]/gu, '').slice(0, 120) })} /></label>
         <label>Email<input required type="email" maxLength={150} value={form.customerEmail} onChange={set('customerEmail')} /></label>
+        <label>RUT<input required maxLength={12} placeholder="12.345.678-5" value={form.customerRut} onChange={(e) => setForm({ ...form, customerRut: formatRutInput(e.target.value) })} /></label>
+        <label>Teléfono (+56 9)<input required inputMode="numeric" maxLength={8} value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value.replace(/\D/g, '').slice(0, 8) })} /></label>
         <label>Patente<input required maxLength={8} value={form.vehiclePlate} onChange={(e) => setForm({ ...form, vehiclePlate: formatPlateInput(e.target.value) })} placeholder="HD-JK-17" /></label>
-        <label>Modelo<input maxLength={120} value={form.vehicleModel} onChange={(e) => setForm({ ...form, vehicleModel: e.target.value.replace(/[^\p{L}\p{N} ]/gu, '').slice(0, 120) })} /></label>
-        <label>Taller (ID)<input required type="number" min={1} max={20} value={form.workshopId} onChange={set('workshopId')} /></label>
+        <label>Modelo<input required minLength={2} maxLength={120} value={form.vehicleModel} onChange={(e) => setForm({ ...form, vehicleModel: e.target.value.replace(/[^\p{L}\p{N} ]/gu, '').slice(0, 120) })} /></label>
+        <label>Taller<select required value={form.workshopId} onChange={set('workshopId')}>{WORKSHOPS.map((workshop) => <option key={workshop.id} value={workshop.id}>{workshop.name}</option>)}</select></label>
       </div>
       <label>Trabajo a realizar<textarea required minLength={10} rows={3} maxLength={1000} value={form.description} onChange={set('description')} /></label>
 
