@@ -4,13 +4,10 @@ import PublicHeader from '../../home/components/PublicHeader';
 import StatusBadge from '../../../components/StatusBadge';
 import { formatDate, formatMoney } from '../../../utils/format';
 import type { Order, Session } from '../../../types';
-import { REGIONS, WORKSHOPS } from '../../scheduling/constants/workshops';
+import { workshopLabel } from '../../scheduling/constants/workshops';
 import { serviceLabel } from '../../scheduling/utils/serviceLabel';
 
 interface MyReviewsPageProps { session: Session; }
-
-const workshopLabel = (workshopId: number) =>
-  WORKSHOPS.find((workshop) => workshop.id === workshopId)?.name ?? `Taller #${workshopId}`;
 
 export default function MyReviewsPage({ session }: MyReviewsPageProps) {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -69,7 +66,7 @@ export default function MyReviewsPage({ session }: MyReviewsPageProps) {
                       <dl>
                         <dt>Vehículo</dt><dd>{order.vehiclePlate} · {order.vehicleModel || 'Modelo no informado'}</dd>
                         <dt>Tipo de revisión</dt><dd>{serviceLabel(order.serviceType)}</dd>
-                        <dt>Región</dt><dd>{REGIONS.find((region) => region.id === (order.regionId || WORKSHOPS.find((workshop) => workshop.id === order.workshopId)?.regionId))?.name ?? 'No informada'}</dd>
+                        {order.regionId && <><dt>Región histórica</dt><dd>{order.regionId}</dd></>}
                         <dt>Fecha de atención</dt><dd>{order.appointmentDate || 'Por coordinar con el taller'}</dd>
                         <dt>Motivo</dt><dd>{order.description || 'Sin descripción'}</dd>
                         <dt>Taller</dt><dd>{workshopLabel(order.workshopId)}</dd>

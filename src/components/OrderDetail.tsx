@@ -2,8 +2,7 @@ import StatusBadge from './StatusBadge';
 import { NEXT_STATUS, STATUS_LABELS } from '../constants/orderStatus';
 import { formatDate, formatMoney } from '../utils/format';
 import type { Order, OrderStatus } from '../types';
-import { WORKSHOPS } from '../features/scheduling/constants/workshops';
-import { REGIONS } from '../features/scheduling/constants/workshops';
+import { workshopLabel } from '../features/scheduling/constants/workshops';
 import { serviceLabel } from '../features/scheduling/utils/serviceLabel';
 import { useEffect, useState } from 'react';
 import { ordersApi } from '../api/ordersApi';
@@ -49,7 +48,7 @@ export default function OrderDetail({
     setBusy(true); try { await onChangeStatus(status, isAdmin || status === 'CANCELADA' ? reason.trim() : undefined); } finally { setBusy(false); }
   }
   const isRequest = order.status === 'RECIBIDA';
-  const workshop = WORKSHOPS.find((item) => item.id === order.workshopId)?.name ?? `Taller #${order.workshopId}`;
+  const workshop = workshopLabel(order.workshopId);
 
   return (
     <div className="detail">
@@ -61,10 +60,10 @@ export default function OrderDetail({
       <dl className="fields">
         <dt>Cliente</dt><dd>{order.customerName}</dd>
         <dt>Email</dt><dd>{order.customerEmail}</dd>
-        <dt>RUT</dt><dd>{order.customerRut || 'No informado'}</dd>
-        <dt>Teléfono</dt><dd>{order.customerPhone ? `+56 9 ${order.customerPhone}` : 'No informado'}</dd>
+        {!order.compraRepuestos && <><dt>RUT</dt><dd>{order.customerRut || 'No informado'}</dd>
+        <dt>Teléfono</dt><dd>{order.customerPhone ? `+56 9 ${order.customerPhone}` : 'No informado'}</dd></>}
         <dt>Tipo</dt><dd>{order.compraRepuestos ? 'Compra de repuestos' : serviceLabel(order.serviceType)}</dd>
-        <dt>Región</dt><dd>{REGIONS.find((r) => r.id === (order.regionId || WORKSHOPS.find((w) => w.id === order.workshopId)?.regionId))?.name || 'No informada'}</dd>
+        {order.regionId && <><dt>Región histórica</dt><dd>{order.regionId}</dd></>}
         {!order.compraRepuestos && <><dt>Atención</dt><dd>{order.appointmentDate || 'Por coordinar'}</dd>
         <dt>Vehículo</dt><dd><span className="plate">{order.vehiclePlate}</span> {order.vehicleModel}</dd></>}
         <dt>Taller</dt><dd>{workshop}</dd>

@@ -1,6 +1,6 @@
 # Talleres360 — Frontend
 
-Aplicación React + TypeScript para gestionar órdenes de trabajo, repuestos y ventas de la red Talleres360. Incluye sitio público, historial del cliente y paneles por rol. Microsoft Entra ID proporciona el inicio de sesión; todas las llamadas pasan por API Gateway y el BFF.
+Aplicación React + TypeScript para gestionar solicitudes, repuestos y ventas de un único taller: Talleres360. Incluye sitio público, historial del cliente y paneles por rol. Microsoft Entra ID proporciona el inicio de sesión; todas las llamadas pasan por API Gateway y el BFF.
 
 La rama de trabajo es `fronted`. Consume el [BFF](https://github.com/EmmanuelhxGG/talleres360-bff) y los cinco microservicios independientes de Emmanuel: [Órdenes](https://github.com/EmmanuelhxGG/ms-ordenes-talleres360), [Catálogo](https://github.com/EmmanuelhxGG/ms-catalogo-talleres360), [Reportes](https://github.com/EmmanuelhxGG/ms-reportes-talleres360), [Notificaciones](https://github.com/EmmanuelhxGG/ms-notificaciones-talleres360) y [Auditoría](https://github.com/EmmanuelhxGG/ms-auditoria-talleres360).
 
@@ -8,13 +8,16 @@ La rama de trabajo es `fronted`. Consume el [BFF](https://github.com/EmmanuelhxG
 
 El flujo principal no utiliza pasarela de pago. Un visitante solicita acceso en
 `/registro` después de autenticarse con Microsoft, usando nombre y correo `@duocuc.cl`.
-Si no existe en el tenant, Admin debe invitarlo primero. No hay registro anónimo.
-Admin consulta **Registros** y habilita
-manualmente la identidad y el rol **Cliente** en Microsoft Entra ID. Registrar la
-solicitud no crea contraseñas ni concede acceso automáticamente.
+La identidad debe poder autenticarse en el tenant. No hay registro anónimo ni
+invitaciones automáticas desde la aplicación. La persona responsable de Entra ID
+gestiona manualmente el alta y el rol **Cliente**. **Registros** permite consultar
+las solicitudes locales; guardarlas no crea usuarios ni una aprobación nativa en
+Entra, ni concede acceso automáticamente.
 
 Con sesión aprobada, el cliente abre `/catalogo`, filtra categorías, añade productos
-al carrito y confirma sus datos y taller. `/mis-solicitudes` muestra sus compras,
+al carrito y envía la solicitud sin completar RUT, teléfono ni seleccionar taller.
+El servidor obtiene nombre/correo del JWT y asigna el único taller.
+`/mis-solicitudes` muestra sus compras,
 precios, cantidades, total y estado. El servidor obtiene correo y precios reales;
 enviar el carrito no descuenta existencias.
 
@@ -52,15 +55,15 @@ Para desarrollo también puede consumirse BFF directamente en `http://localhost:
 ### Sitio público y Cliente
 
 - Inicio con presentación, fotografías y acceso al login. Header con Inicio, Agendamiento, Servicios y Nosotros; con sesión de cliente incorpora Mi revisión técnica.
-- Agendamiento online para mantenciones/arreglos o diagnóstico: cinco pasos de vehículo, propietario, servicio/taller, fecha y resumen. Tres regiones y veinte talleres. El correo se muestra desde la sesión y el BFF obtiene la identidad del JWT al confirmar mediante `POST /api/appointments`.
+- Agendamiento anterior conservado para mantenciones/arreglos o diagnóstico: cinco pasos de vehículo, propietario, motivo del servicio, fecha y resumen. Se realiza en el único taller, sin elegir región o sucursal. Este formulario mecánico conserva sus validaciones de propietario; no es el carrito de compras. El BFF obtiene el correo del JWT mediante `POST /api/appointments`.
 - Calendario mensual grande: blanco disponible, gris no disponible y amarillo seleccionado. Consulta `GET /api/appointments/availability`; no inventa ocupación. El servicio actual no aplica cupos diarios ni horas de atención.
-- **Mi revisión técnica** (`/mis-revisiones`) utiliza `GET /api/appointments`. El servidor entrega únicamente solicitudes de la cuenta; incluye tipo de revisión, región, taller, motivo, fechas, diagnóstico y total.
+- **Mi revisión técnica** (`/mis-revisiones`) utiliza `GET /api/appointments`. El servidor entrega únicamente solicitudes de la cuenta; incluye tipo de revisión, taller, motivo, fechas, diagnóstico y total. La región solo aparece en registros históricos que ya la tenían.
 
 Rutas: `/`, `/agendamiento` y `/mis-revisiones`.
 
 ### Operador
 
-Consulta y crea órdenes con RUT, teléfono y patente validados; acepta o rechaza solicitudes y avanza el trabajo hasta la entrega. En **Recibida** asigna repuestos. Después de aceptar, registra diagnóstico, trabajo realizado, mano de obra, entrega estimada y repuestos mediante `/api/orders/{id}/technical`. Consulta confirmación de stock antes de permitir la entrega. No puede eliminar.
+Consulta, acepta o rechaza solicitudes y avanza hasta la entrega. No crea órdenes ni puede eliminarlas. Las compras mantienen el carrito del cliente; las atenciones mecánicas anteriores conservan informe técnico y validaciones. Consulta confirmación de stock antes de entregar.
 
 Incluye **Notificaciones** en el menú izquierdo: tickets del taller, filtro por número de orden, mensaje desplegable, estados, paginación y actualización manual.
 
@@ -95,7 +98,7 @@ El administrador debe justificar sus cambios de estado con al menos diez caracte
 | `src/api/ordersApi.ts` | CRUD y cambio de estado de órdenes (ms-orders). |
 | `src/api/productsApi.ts`, `reportsApi.ts` | Catálogo, ventas y auditoría. |
 | `src/features/home/` | Inicio, header público y página de agendamiento. |
-| `src/features/scheduling/` | Formulario de cinco pasos, calendario, talleres, regiones y validaciones. |
+| `src/features/scheduling/` | Formulario de cinco pasos, calendario, taller único y validaciones. |
 | `src/api/appointmentsApi.ts` | Crear solicitudes, consultar las propias y disponibilidad. |
 | `src/features/client/` | Mi revisión técnica. |
 | `src/features/reports/` | Página, hook y tratamiento de fechas del reporte. |

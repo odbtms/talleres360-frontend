@@ -39,12 +39,12 @@ export default function RegistroPage({ correoAutenticado, onLogout, ...publico }
     <PublicHeader {...publico} />
     <main className="tienda"><section className="panel registro-form">
       <h1>Solicita tu acceso</h1>
-      <p>Acceso exclusivo para correos @duocuc.cl. El administrador habilita el rol Cliente en Microsoft Entra ID.</p>
+      <p>Acceso exclusivo para correos @duocuc.cl. La persona responsable de Microsoft Entra ID habilita manualmente el rol Cliente.</p>
       {!correoAutenticado ? <>
-        <p>Primero inicia sesión con Microsoft. Si tu cuenta aún no está invitada al tenant, solicita la invitación al administrador. No se admiten registros anónimos.</p>
+        <p>Primero inicia sesión con Microsoft. Tu cuenta debe estar habilitada para acceder a esta aplicación en Entra ID. No se admiten registros anónimos.</p>
         <button className="btn primary" disabled={publico.busy || publico.loginDisabled || publico.configurationMissing} onClick={() => void publico.onLogin?.()}>Iniciar sesión con Microsoft</button>
       </> : !institucional ? <p role="alert">La cuenta autenticada no tiene un correo @duocuc.cl. Ingresa con tu cuenta institucional.</p>
-        : terminado ? <p role="status">Solicitud recibida. El acceso al catálogo se habilitará cuando el administrador asigne el rol Cliente. Después cierra sesión y vuelve a ingresar.</p>
+        : terminado ? <p role="status">Solicitud recibida. El acceso al catálogo se habilitará cuando la persona responsable de Entra ID asigne el rol Cliente. Después cierra sesión y vuelve a ingresar.</p>
         : <form onSubmit={evento => void solicitar(evento)} className="registro-form">
           <label>Nombre y apellido<input required minLength={3} maxLength={120} value={nombre} onChange={evento => setNombre(evento.target.value.replace(/[^\p{L} ]/gu, ''))} autoComplete="name" /></label>
           <label>Correo institucional autenticado<input type="email" value={correoAutenticado} readOnly /></label>

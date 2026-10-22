@@ -25,7 +25,6 @@ export interface OrderItemInput {
 }
 
 export interface OrderPayload {
-  workshopId: number;
   customerName: string;
   customerEmail: string;
   customerRut: string;
@@ -44,8 +43,8 @@ export interface Order {
   workshopId: number;
   customerName: string;
   customerEmail: string;
-  customerRut: string;
-  customerPhone: string;
+  customerRut: string | null;
+  customerPhone: string | null;
   vehicleYear: number | null;
   serviceType: 'MAINTENANCE' | 'DIAGNOSTICS' | null;
   regionId: string | null;
@@ -55,7 +54,7 @@ export interface Order {
   laborCost: number;
   estimatedDeliveryDate: string | null;
   technicalUpdatedAt: string | null;
-  vehiclePlate: string;
+  vehiclePlate: string | null;
   vehicleModel: string | null;
   description: string | null;
   status: OrderStatus;

@@ -66,8 +66,6 @@ export function validateStep(step: number, data: SchedulingFormData): Scheduling
     if (!EMAIL_PATTERN.test(data.email.trim())) errors.email = 'Ingresa un correo electrónico válido.';
   }
   if (step === 3) {
-    if (!data.regionId) errors.regionId = 'Selecciona una región.';
-    if (!data.workshopId) errors.workshopId = 'Selecciona un taller.';
     const reasonLength = data.reason.trim().length;
     if (reasonLength < 10 || reasonLength > 500) errors.reason = 'Describe el motivo usando entre 10 y 500 caracteres.';
   }

@@ -3,8 +3,7 @@ import { productsApi, categoriasApi } from '../../api/productsApi';
 import { comprasApi } from '../../api/comprasApi';
 import type { Product, Categoria, Order, Session } from '../../types';
 import { formatDate, formatMoney } from '../../utils/format';
-import { formatRutInput, isValidRut } from '../scheduling/utils/validation';
-import { WORKSHOPS } from '../scheduling/constants/workshops';
+import { workshopLabel } from '../scheduling/constants/workshops';
 import PublicHeader from '../home/components/PublicHeader';
 import './compras.css';
 import { estadoCompra } from '../../utils/estadoCompra';
@@ -24,8 +23,7 @@ export default function ComprasPage({ session, solicitudes = false }: { session:
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(''); const [aviso, setAviso] = useState('');
   const [busqueda, setBusqueda] = useState(''); const [categoria, setCategoria] = useState('');
-  const [nombre, setNombre] = useState(''); const [rut, setRut] = useState(''); const [telefono, setTelefono] = useState('');
-  const [taller, setTaller] = useState(''); const [enviando, setEnviando] = useState(false);
+  const [enviando, setEnviando] = useState(false);
   const [solicitudId, setSolicitudId] = useState(() => sessionStorage.getItem(`${clave}:solicitud`) || crypto.randomUUID());
   useEffect(() => { try { sessionStorage.setItem(clave, JSON.stringify(carrito)); sessionStorage.setItem(`${clave}:solicitud`, solicitudId); } catch { /* Sin almacenamiento sigue funcionando en memoria. */ } }, [clave, carrito, solicitudId]);
   useEffect(() => {
@@ -45,9 +43,9 @@ export default function ComprasPage({ session, solicitudes = false }: { session:
   function cantidad(id: number, n: number) { setCarrito(actual => { const copia = { ...actual }; if (n <= 0) delete copia[id]; else copia[id] = Math.min(1000, Math.trunc(n)); return copia; }); }
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (enviando) return;
-    if (!isValidRut(rut) || !/^\d{8}$/.test(telefono) || !/^[\p{L} ]{3,120}$/u.test(nombre.trim()) || !taller || !seleccion.length || seleccion.length>50 || inconsistencias) { setError('Revisa nombre, RUT, teléfono, taller y disponibilidad. El máximo es de 50 productos diferentes por solicitud.'); return; }
+    if (!seleccion.length || seleccion.length>50 || inconsistencias) { setError('Revisa las cantidades y disponibilidad. El máximo es de 50 productos diferentes por solicitud.'); return; }
     setEnviando(true); setError(''); setAviso('');
-    try { const orden = await comprasApi.crear({ solicitudId, nombre: nombre.trim(), rut, telefono, tallerId: Number(taller), productos: seleccion.map(i => ({ productoId: Number(i.id), cantidad: i.cantidad })) });
+    try { const orden = await comprasApi.crear({ solicitudId, productos: seleccion.map(i => ({ productoId: Number(i.id), cantidad: i.cantidad })) });
       setCarrito({}); setSolicitudId(crypto.randomUUID()); setAviso(`Solicitud #${orden.id} recibida por ${formatMoney(orden.total)}. El operador revisará tu solicitud. No se realizó ningún cobro.`);
     } catch { setError('No se pudo confirmar la solicitud. Revisa Mis solicitudes antes de volver a intentar; tu carrito se conserva.'); }
     finally { setEnviando(false); }
@@ -60,7 +58,7 @@ export default function ComprasPage({ session, solicitudes = false }: { session:
       {cargando && <p role="status">Cargando…</p>}
       {solicitudes ? <div className="pedidos-lista">{!cargando && !pedidos.length && <section className="panel"><h2>Aún no tienes solicitudes</h2><a className="btn primary" href="/catalogo">Explorar repuestos</a></section>}
         {pedidos.map(o => <details className="panel pedido" key={o.id}><summary><strong>Solicitud #{o.id}</strong><span>{estadoCompra(o)}</span><span>{formatMoney(o.total)}</span><span>{formatDate(o.createdAt)}</span></summary>
-          <p>Retiro: {WORKSHOPS.find(t => t.id === o.workshopId)?.name || `Taller ${o.workshopId}`}</p>
+          <p>Retiro: {workshopLabel(o.workshopId)}</p>
           <ul>{o.items.map(i => <li key={i.id}>{i.description} × {i.quantity} — {formatMoney(i.subtotal)}</li>)}</ul>
           {o.motivoRechazo && <p role="note"><strong>Motivo del rechazo:</strong> {o.motivoRechazo}</p>}
           {o.aceptacionPendiente && <p>El operador solicitó la aceptación. Estamos confirmando existencias; no está aceptada todavía.</p>}
@@ -77,12 +75,9 @@ export default function ComprasPage({ session, solicitudes = false }: { session:
               <button type="button" className="btn ghost small" disabled={enviando} onClick={() => cantidad(Number(i.id),0)}>Quitar</button></div>)}
             <p className="carrito-total">Total estimado <strong>{formatMoney(total)}</strong></p>
             {inconsistencias && <p role="alert">Cambió el stock de un producto. Ajusta las cantidades o quítalo antes de continuar.</p>}
-            <form onSubmit={e => void enviar(e)}><fieldset disabled={enviando}><legend>Datos para la solicitud</legend>
-              <label>Nombre y apellido<input required minLength={3} maxLength={120} value={nombre} onChange={e => setNombre(e.target.value.replace(/[^\p{L} ]/gu,''))} autoComplete="name" /></label>
-              <label>Correo institucional<input value={session.username} readOnly type="email" /></label>
-              <label>RUT<input required value={rut} maxLength={12} onChange={e => setRut(formatRutInput(e.target.value))} placeholder="12.345.678-5" /></label>
-              <label>Teléfono +56 9<input required inputMode="numeric" maxLength={8} pattern="[0-9]{8}" value={telefono} onChange={e => setTelefono(e.target.value.replace(/\D/g,'').slice(0,8))} autoComplete="tel-national" /></label>
-              <label>Taller de retiro<select required value={taller} onChange={e => setTaller(e.target.value)}><option value="">Selecciona un taller</option>{WORKSHOPS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+            <form onSubmit={e => void enviar(e)}><fieldset disabled={enviando}><legend>Confirmar solicitud</legend>
+              <p>Cuenta: {session.name} · {session.username}</p>
+              <p>No necesitas completar datos adicionales. El servidor identifica tu cuenta y asigna nuestro único taller.</p>
               <p>El servidor confirma precios y disponibilidad. No se cobrará en línea.</p><button className="btn primary" disabled={!seleccion.length || inconsistencias} type="submit">{enviando ? 'Enviando…' : 'Enviar solicitud'}</button>
             </fieldset></form></aside></div>}
     </main></div>;

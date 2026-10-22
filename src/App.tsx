@@ -96,6 +96,7 @@ export default function App({ session }: AppProps) {
   }
 
   async function handleSave(payload: OrderPayload) {
+    if (!canCreate) { setError('Tu cuenta no puede crear órdenes.'); return; }
     const saved = await run(() => ordersApi.create(payload));
     if (saved) {
       setSelected(saved);
@@ -179,7 +180,7 @@ export default function App({ session }: AppProps) {
         </section>
 
         <aside className="panel side">
-          {formMode === 'create' ? (
+          {formMode === 'create' && canCreate ? (
             <OrderForm
               key="create"
               initial={null}
@@ -200,7 +201,7 @@ export default function App({ session }: AppProps) {
               onDelete={handleDelete}
             />
           ) : (
-            <p className="empty">Selecciona una orden para ver el detalle o crea una nueva.</p>
+            <p className="empty">{canCreate ? 'Selecciona una orden para ver el detalle o crea una nueva.' : 'Selecciona una solicitud para revisarla y gestionar su estado.'}</p>
           )}
         </aside>
       </main>}

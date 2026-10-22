@@ -41,7 +41,7 @@ export default function SchedulingPage({
           <p className="section-eyebrow">Agenda tu atención</p>
           <h1>¿Qué necesita tu vehículo?</h1>
           <p>
-            Selecciona el servicio y completa cinco pasos para solicitar atención en uno de nuestros talleres.
+            Selecciona el servicio y completa cinco pasos para solicitar atención en Talleres360.
           </p>
         </header>
 

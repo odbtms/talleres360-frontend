@@ -1,10 +1,8 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import type { Order, OrderPayload } from '../types';
 import { formatPlateInput, formatRutInput, isValidRut } from '../features/scheduling/utils/validation';
-import { WORKSHOPS } from '../features/scheduling/constants/workshops';
 
 interface OrderFormState {
-  workshopId: number | string;
   customerName: string;
   customerEmail: string;
   customerRut: string;
@@ -23,17 +21,16 @@ interface OrderFormProps {
 function toForm(order: Order | null): OrderFormState {
   if (!order) {
     return {
-      workshopId: 1, customerName: '', customerEmail: '', vehiclePlate: '',
+      customerName: '', customerEmail: '', vehiclePlate: '',
       vehicleModel: '', description: '', customerRut: '', customerPhone: '',
     };
   }
   return {
-    workshopId: order.workshopId,
     customerName: order.customerName,
     customerEmail: order.customerEmail,
-    customerRut: order.customerRut,
-    customerPhone: order.customerPhone,
-    vehiclePlate: order.vehiclePlate,
+    customerRut: order.customerRut ?? '',
+    customerPhone: order.customerPhone ?? '',
+    vehiclePlate: order.vehiclePlate ?? '',
     vehicleModel: order.vehicleModel ?? '',
     description: order.description ?? '',
   };
@@ -56,7 +53,6 @@ export default function OrderForm({ initial, onSubmit, onCancel }: OrderFormProp
     setSaving(true);
     try { await onSubmit({
       ...form,
-      workshopId: Number(form.workshopId),
       customerName: form.customerName.trim(),
       customerEmail: form.customerEmail.trim(),
       vehicleModel: form.vehicleModel.trim(),
@@ -77,7 +73,6 @@ export default function OrderForm({ initial, onSubmit, onCancel }: OrderFormProp
         <label>Teléfono (+56 9)<input required inputMode="numeric" maxLength={8} value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value.replace(/\D/g, '').slice(0, 8) })} /></label>
         <label>Patente<input required maxLength={8} value={form.vehiclePlate} onChange={(e) => setForm({ ...form, vehiclePlate: formatPlateInput(e.target.value) })} placeholder="HD-JK-17" /></label>
         <label>Modelo<input required minLength={2} maxLength={120} value={form.vehicleModel} onChange={(e) => setForm({ ...form, vehicleModel: e.target.value.replace(/[^\p{L}\p{N} ]/gu, '').slice(0, 120) })} /></label>
-        <label>Taller<select required value={form.workshopId} onChange={set('workshopId')}>{WORKSHOPS.map((workshop) => <option key={workshop.id} value={workshop.id}>{workshop.name}</option>)}</select></label>
       </div>
       <label>Trabajo a realizar<textarea required minLength={10} rows={3} maxLength={1000} value={form.description} onChange={set('description')} /></label>
 

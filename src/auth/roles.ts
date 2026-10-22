@@ -19,7 +19,7 @@ export function permissionsFor(roles: string[]) {
   const has = (...allowed: string[]) => allowed.some((role) => roles.includes(role));
   return {
     canWrite: has('Admin', 'Operador'),
-    canCreate: has('Admin', 'Operador'),
+    canCreate: has('Admin'),
     canDelete: has('Admin'),
   };
 }

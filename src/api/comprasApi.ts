@@ -1,6 +1,6 @@
 import { request } from './http';
 import type { Order, SolicitudRegistro } from '../types';
-export interface CompraInput { solicitudId: string; nombre: string; rut: string; telefono: string; tallerId: number; productos: { productoId: number; cantidad: number }[]; }
+export interface CompraInput { solicitudId: string; productos: { productoId: number; cantidad: number }[]; }
 export const comprasApi = {
   crear: (input: CompraInput) => request<Order>('/api/compras', { method: 'POST', body: input }),
   propias: () => request<Order[]>('/api/compras'),

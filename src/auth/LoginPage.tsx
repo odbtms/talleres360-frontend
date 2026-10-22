@@ -37,7 +37,7 @@ export default function LoginPage({
           </div>
         )}
 
-        <p className="login-footer">Acceso para Admin, Operador y Cliente de la red de talleres.</p>
+        <p className="login-footer">Acceso para Admin, Operador y Cliente de Talleres360.</p>
       </div>
     </div>
   );

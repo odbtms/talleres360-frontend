@@ -70,12 +70,11 @@ export default function OrderItemsForm({ order, onSubmit, onTechnicalSubmit, onC
         return;
       }
       await onSubmit({
-        workshopId: order.workshopId,
         customerName: order.customerName,
         customerEmail: order.customerEmail,
-        customerRut: order.customerRut,
-        customerPhone: order.customerPhone,
-        vehiclePlate: order.vehiclePlate,
+        customerRut: order.customerRut ?? '',
+        customerPhone: order.customerPhone ?? '',
+        vehiclePlate: order.vehiclePlate ?? '',
         vehicleModel: order.vehicleModel ?? '',
         description: order.description ?? '',
         items,

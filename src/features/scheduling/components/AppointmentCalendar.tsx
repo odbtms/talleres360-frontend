@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { appointmentsApi } from '../../../api/appointmentsApi';
 import { localDate, maximumAppointmentDate, minimumAppointmentDate } from '../utils/validation';
 
-interface Props { workshopId: number; value: string; onChange: (date: string) => void; }
+interface Props { value: string; onChange: (date: string) => void; }
 
-export default function AppointmentCalendar({ workshopId, value, onChange }: Props) {
+export default function AppointmentCalendar({ value, onChange }: Props) {
   const minimum = minimumAppointmentDate();
   const maximum = maximumAppointmentDate();
   const [month, setMonth] = useState(() => new Date(`${value || minimum}T12:00:00`));
@@ -17,12 +17,12 @@ export default function AppointmentCalendar({ workshopId, value, onChange }: Pro
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true); setError(''); setUnavailable([]);
-    appointmentsApi.availability(workshopId, from, to, controller.signal)
+    appointmentsApi.availability(from, to, controller.signal)
       .then((result) => { if (!controller.signal.aborted) setUnavailable(result.occupiedDates); })
       .catch(() => { if (!controller.signal.aborted) setError('No se pudo consultar la disponibilidad. Inténtalo nuevamente.'); })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [workshopId, from, to, retry]);
+  }, [from, to, retry]);
   const start = new Date(month.getFullYear(), month.getMonth(), 1);
   const offset = (start.getDay() + 6) % 7;
   const cells = Math.ceil((offset + new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()) / 7) * 7;
