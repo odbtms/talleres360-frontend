@@ -2,19 +2,19 @@ export default function HeroSection() {
   return (
     <section className="hero" id="inicio">
       <div className="hero-content">
-        <p className="hero-eyebrow">Tu vehículo, siempre acompañado</p>
-        <h1>El cuidado de tu vehículo, más simple y transparente</h1>
+        <p className="hero-eyebrow">Repuestos para tu vehículo</p>
+        <h1>Elige tus repuestos y solicita su retiro en el taller</h1>
         <p className="hero-description">
-          En Talleres360 conectamos a clientes y talleres para gestionar cada servicio de forma clara,
-          segura y sin perder de vista ningún avance.
+          Consulta el catálogo, arma tu carrito y envía una solicitud sin pagos en línea.
+          El operador confirma tu pedido y te avisamos cuando esté listo para retirar.
         </p>
         <div className="hero-actions">
-          <a className="btn public-secondary-button" href="/agendamiento">
-            Agenda con nosotros
+          <a className="btn public-secondary-button" href="/registro">
+            Solicitar registro
           </a>
         </div>
         <div className="hero-trust" aria-label="Beneficios del servicio">
-          <span>Atención confiable</span>
+          <span>Acceso institucional @duocuc.cl</span>
           <span>Seguimiento centralizado</span>
         </div>
       </div>

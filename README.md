@@ -4,6 +4,28 @@ Aplicación React + TypeScript para gestionar órdenes de trabajo, repuestos y v
 
 La rama de trabajo es `fronted`. Consume el [BFF](https://github.com/EmmanuelhxGG/talleres360-bff) y los cinco microservicios independientes de Emmanuel: [Órdenes](https://github.com/EmmanuelhxGG/ms-ordenes-talleres360), [Catálogo](https://github.com/EmmanuelhxGG/ms-catalogo-talleres360), [Reportes](https://github.com/EmmanuelhxGG/ms-reportes-talleres360), [Notificaciones](https://github.com/EmmanuelhxGG/ms-notificaciones-talleres360) y [Auditoría](https://github.com/EmmanuelhxGG/ms-auditoria-talleres360).
 
+## Solicitudes de compra
+
+El flujo principal no utiliza pasarela de pago. Un visitante solicita acceso en
+`/registro` con nombre y correo `@duocuc.cl`. Admin consulta **Registros** y habilita
+manualmente la identidad y el rol **Cliente** en Microsoft Entra ID. Registrar la
+solicitud no crea contraseñas ni concede acceso automáticamente.
+
+Con sesión aprobada, el cliente abre `/catalogo`, filtra categorías, añade productos
+al carrito y confirma sus datos y taller. `/mis-solicitudes` muestra sus compras,
+precios, cantidades, total y estado. El servidor obtiene correo y precios reales;
+enviar el carrito no descuenta existencias.
+
+Operador acepta o rechaza con motivo. La aceptación queda pendiente hasta que
+Catálogo confirme stock; después pasa a **En espera**, **Lista para retirar o
+entregar** y **Entregada**. Estas compras no requieren diagnóstico de vehículo.
+Admin administra productos/categorías con baja lógica y consulta ventas/auditoría.
+El formulario histórico de agendamiento de cinco pasos se conserva.
+
+Los avisos automáticos son aceptación, disponibilidad para retiro/entrega y
+rechazo con motivo. El comprobante es texto dentro del correo, sin PDF ni adjuntos. Requieren un
+remitente autorizado en Notificaciones; iniciar sesión no habilita envío SMTP.
+
 ## Tecnologías
 
 React 19, TypeScript 7, Vite 8 y MSAL Browser/React. Estilos CSS con variables de tema en `src/styles.css` y estilos del panel en `src/styles/gestion.css`. Las imágenes y el logo se almacenan en el proyecto. Las versiones exactas están en `package.json` y `package-lock.json`.

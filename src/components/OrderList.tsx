@@ -1,6 +1,7 @@
 import StatusBadge from './StatusBadge';
 import { formatDate, formatMoney } from '../utils/format';
 import type { Order } from '../types';
+import { estadoCompra } from '../utils/estadoCompra';
 
 interface OrderListProps {
   orders: Order[];
@@ -19,7 +20,7 @@ export default function OrderList({ orders, loading, selectedId, onSelect }: Ord
         <thead>
           <tr>
             <th>#</th>
-            <th>Patente</th>
+            <th>Tipo / vehículo</th>
             <th>Cliente</th>
             <th>Taller</th>
             <th>Estado</th>
@@ -35,10 +36,10 @@ export default function OrderList({ orders, loading, selectedId, onSelect }: Ord
               onClick={() => onSelect(order)}
             >
               <td>{order.id}</td>
-              <td className="plate">{order.vehiclePlate}</td>
+              <td className="plate">{order.compraRepuestos ? 'Compra de repuestos' : order.vehiclePlate}</td>
               <td>{order.customerName}</td>
               <td>{order.workshopId}</td>
-              <td><StatusBadge status={order.status} /></td>
+              <td>{order.compraRepuestos ? estadoCompra(order) : <StatusBadge status={order.status} />}</td>
               <td className="num">{formatMoney(order.total)}</td>
               <td>{formatDate(order.createdAt)}</td>
             </tr>

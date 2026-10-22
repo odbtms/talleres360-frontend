@@ -8,6 +8,7 @@ import { rolesFromToken } from './roles';
 import PublicSite from '../features/home/PublicSite';
 import ClientSite from '../features/client/ClientSite';
 import type { Session } from '../types';
+import RegistroPage from '../features/compras/RegistroPage';
 
 interface AuthGateProps {
   children: (session: Session) => ReactNode;
@@ -61,6 +62,7 @@ function MsalAuthGate({ children }: AuthGateProps) {
     }
   }
 
+  if (window.location.pathname.replace(/\/+$/,'') === '/registro') return <RegistroPage onLogin={login} busy={busy} />;
   if (!account) {
     return (
       <PublicSite
@@ -82,7 +84,12 @@ function MsalAuthGate({ children }: AuthGateProps) {
     logout: () => instance.logoutPopup({ account }),
   };
 
+  const correoClaim = account.idTokenClaims?.email;
+  const correo = typeof correoClaim === 'string' && /@duocuc\.cl$/i.test(correoClaim) ? correoClaim : account.username;
+
   if (roles.includes('Cliente') && !roles.some((role) => role === 'Admin' || role === 'Operador')) {
+    if (!/^[^\s@]+@duocuc\.cl$/i.test(correo)) return <main className="reviews-page"><h1>Acceso institucional requerido</h1><p>Ingresa con una cuenta @duocuc.cl habilitada como Cliente en Entra ID.</p><button className="btn primary" onClick={()=>void session.logout()}>Cerrar sesión</button></main>;
+    session.username = correo;
     return <ClientSite session={session} />;
   }
 

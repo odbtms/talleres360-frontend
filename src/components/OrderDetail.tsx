@@ -7,6 +7,7 @@ import { REGIONS } from '../features/scheduling/constants/workshops';
 import { serviceLabel } from '../features/scheduling/utils/serviceLabel';
 import { useEffect, useState } from 'react';
 import { ordersApi } from '../api/ordersApi';
+import { estadoCompra } from '../utils/estadoCompra';
 
 interface OrderDetailProps {
   order: Order;
@@ -27,9 +28,11 @@ export default function OrderDetail({
   onEdit,
   onDelete,
 }: OrderDetailProps) {
-  const nextStatuses = canWrite ? NEXT_STATUS[order.status] ?? [] : [];
+  const nextStatuses = canWrite ? (order.compraRepuestos
+    ? ({ RECIBIDA: order.aceptacionPendiente ? ['CANCELADA'] : ['ACEPTADA','CANCELADA'], ACEPTADA:['LISTA_PARA_ENTREGA','CANCELADA'], LISTA_PARA_ENTREGA:['ENTREGADA','CANCELADA'],ENTREGADA:[],CANCELADA:[],EN_REPARACION:[] } as Record<OrderStatus,OrderStatus[]>)[order.status]
+    : NEXT_STATUS[order.status] ?? []) : [];
   // ms-orders solo permite editar (PUT /api/orders/{id}) en RECIBIDA
-  const canEdit = canWrite && ['RECIBIDA', 'ACEPTADA', 'EN_REPARACION', 'LISTA_PARA_ENTREGA'].includes(order.status);
+  const canEdit = !order.compraRepuestos && canWrite && ['RECIBIDA', 'ACEPTADA', 'EN_REPARACION', 'LISTA_PARA_ENTREGA'].includes(order.status);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState(true);
@@ -43,7 +46,7 @@ export default function OrderDetail({
   }, [order.id, order.status, order.updatedAt]);
   async function change(status: OrderStatus) {
     if (busy) return;
-    setBusy(true); try { await onChangeStatus(status, isAdmin ? reason.trim() : undefined); } finally { setBusy(false); }
+    setBusy(true); try { await onChangeStatus(status, isAdmin || status === 'CANCELADA' ? reason.trim() : undefined); } finally { setBusy(false); }
   }
   const isRequest = order.status === 'RECIBIDA';
   const workshop = WORKSHOPS.find((item) => item.id === order.workshopId)?.name ?? `Taller #${order.workshopId}`;
@@ -51,8 +54,8 @@ export default function OrderDetail({
   return (
     <div className="detail">
       <div className="detail-head">
-        <h2>Orden #{order.id}</h2>
-        <StatusBadge status={order.status} />
+        <h2>{order.compraRepuestos ? 'Solicitud' : 'Orden'} #{order.id}</h2>
+        {order.compraRepuestos ? <strong>{estadoCompra(order)}</strong> : <StatusBadge status={order.status} />}
       </div>
 
       <dl className="fields">
@@ -60,14 +63,16 @@ export default function OrderDetail({
         <dt>Email</dt><dd>{order.customerEmail}</dd>
         <dt>RUT</dt><dd>{order.customerRut || 'No informado'}</dd>
         <dt>Teléfono</dt><dd>{order.customerPhone ? `+56 9 ${order.customerPhone}` : 'No informado'}</dd>
-        <dt>Servicio</dt><dd>{serviceLabel(order.serviceType)}</dd>
+        <dt>Tipo</dt><dd>{order.compraRepuestos ? 'Compra de repuestos' : serviceLabel(order.serviceType)}</dd>
         <dt>Región</dt><dd>{REGIONS.find((r) => r.id === (order.regionId || WORKSHOPS.find((w) => w.id === order.workshopId)?.regionId))?.name || 'No informada'}</dd>
-        <dt>Atención</dt><dd>{order.appointmentDate || 'Por coordinar'}</dd>
-        <dt>Vehículo</dt><dd><span className="plate">{order.vehiclePlate}</span> {order.vehicleModel}</dd>
+        {!order.compraRepuestos && <><dt>Atención</dt><dd>{order.appointmentDate || 'Por coordinar'}</dd>
+        <dt>Vehículo</dt><dd><span className="plate">{order.vehiclePlate}</span> {order.vehicleModel}</dd></>}
         <dt>Taller</dt><dd>{workshop}</dd>
         <dt>Motivo</dt><dd>{order.description || 'Sin motivo informado'}</dd>
         <dt>Total</dt><dd><strong>{formatMoney(order.total)}</strong></dd>
       </dl>
+      {order.aceptacionPendiente && <p role="status">Aceptación pendiente de confirmar stock. Se reintentará automáticamente si Catálogo no está disponible. Puedes rechazar la solicitud indicando el motivo.</p>}
+      {order.motivoRechazo && <p><strong>Motivo del rechazo:</strong> {order.motivoRechazo}</p>}
 
 
       <h3>Repuestos / servicios</h3>
@@ -97,11 +102,11 @@ export default function OrderDetail({
       )}
 
       <dl className="fields timeline">
-        <dt>Diagnóstico</dt><dd>{order.diagnosis || 'Aún no registrado'}</dd>
+        {!order.compraRepuestos && <><dt>Diagnóstico</dt><dd>{order.diagnosis || 'Aún no registrado'}</dd>
         <dt>Trabajo</dt><dd>{order.workPerformed || 'Aún no registrado'}</dd>
         <dt>Mano de obra</dt><dd>{formatMoney(order.laborCost || 0)}</dd>
         <dt>Entrega estimada</dt><dd>{order.estimatedDeliveryDate || 'Por definir'}</dd>
-        <dt>Informe actualizado</dt><dd>{formatDate(order.technicalUpdatedAt)}</dd>
+        <dt>Informe actualizado</dt><dd>{formatDate(order.technicalUpdatedAt)}</dd></>}
         <dt>Creada</dt><dd>{formatDate(order.createdAt)}</dd>
         <dt>Aceptada</dt><dd>{formatDate(order.acceptedAt)}</dd>
         <dt>Entregada</dt><dd>{formatDate(order.deliveredAt)}</dd>
@@ -110,7 +115,7 @@ export default function OrderDetail({
       {nextStatuses.length > 0 && (
         <>
           <h3>{isRequest ? 'Solicitud' : 'Estado del trabajo'}</h3>
-          {isAdmin && <label>Justificación de la intervención<textarea minLength={10} maxLength={500} rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Explica el motivo (mínimo 10 caracteres)" /></label>}
+          {(isAdmin || order.compraRepuestos) && <label>{isAdmin ? 'Justificación / motivo del rechazo' : 'Motivo del rechazo (obligatorio para rechazar)'}<textarea maxLength={500} rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Explica el motivo (mínimo 10 caracteres)" /></label>}
           {!isRequest && <p role="status" className="muted">{stockError || (pending ? 'Confirmando asignación de repuestos…' : 'Asignación de repuestos confirmada.')}</p>}
           {order.status === 'EN_REPARACION' && (!order.diagnosis || !order.workPerformed) && <p className="muted">Guarda el informe técnico antes de marcar la orden como lista.</p>}
           <div className="actions">
@@ -118,10 +123,10 @@ export default function OrderDetail({
               <button
                 key={status}
                 className={`btn ${status === 'CANCELADA' ? 'danger-ghost' : 'primary'}`}
-                disabled={busy || isAdmin && reason.trim().length < 10 || status === 'ENTREGADA' && pending || status === 'LISTA_PARA_ENTREGA' && (!order.diagnosis || !order.workPerformed)}
+                disabled={busy || isAdmin && reason.trim().length < 10 || order.compraRepuestos && status === 'CANCELADA' && reason.trim().length < 10 || status === 'ENTREGADA' && pending || !order.compraRepuestos && status === 'LISTA_PARA_ENTREGA' && (!order.diagnosis || !order.workPerformed)}
                 onClick={() => { void change(status); }}
               >
-                {isRequest ? (status === 'ACEPTADA' ? 'Aceptar' : 'Rechazar') : STATUS_LABELS[status]}
+                {isRequest ? (status === 'ACEPTADA' ? 'Aceptar solicitud' : 'Rechazar solicitud') : order.compraRepuestos ? status === 'LISTA_PARA_ENTREGA' ? 'Lista para retirar' : status === 'CANCELADA' ? 'Rechazar solicitud' : 'Confirmar entrega' : STATUS_LABELS[status]}
               </button>
             ))}
           </div>

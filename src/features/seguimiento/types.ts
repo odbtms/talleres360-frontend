@@ -11,7 +11,7 @@ export type EstadoNotificacion = 'PENDIENTE' | 'REINTENTO' | 'ENVIADA' | 'GENERA
 export interface Notificacion {
   commandId: string;
   orderId: number;
-  tipo: 'CORREO' | 'TICKET_TALLER';
+  tipo: 'CORREO' | 'TICKET_TALLER' | 'COMPROBANTE';
   destinatario: string | null;
   asunto: string;
   mensaje: string;

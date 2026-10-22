@@ -12,6 +12,7 @@ import MenuLateral from './layouts/MenuLateral';
 import ReportesPage from './features/reports/pages/ReportesPage';
 import NotificacionesPage from './features/seguimiento/pages/NotificacionesPage';
 import AuditoriaPage from './features/seguimiento/pages/AuditoriaPage';
+import RegistrosPage from './features/compras/RegistrosPage';
 import { OPCIONES_GESTION, TITULOS_GESTION } from './constants/navegacionGestion';
 import type { DestinoGestion, VistaGestion } from './types/gestion';
 import { permissionsFor } from './auth/roles';
@@ -73,8 +74,13 @@ export default function App({ session }: AppProps) {
   }, [filters]);
 
   useEffect(() => {
-    if (view === 'orders') void loadOrders();
+    if (view !== 'orders') return;
+    void loadOrders();
+    const timer=window.setInterval(()=>void loadOrders(),5000);
+    return ()=>window.clearInterval(timer);
   }, [loadOrders, view]);
+
+  useEffect(()=>{setSelected(actual=>actual?orders.find(o=>o.id===actual.id)||actual:null);},[orders]);
 
   // Ejecuta una accion contra la API, refresca la lista y muestra el error del backend si falla
   async function run<T>(action: () => Promise<T>): Promise<T | undefined> {
@@ -163,6 +169,7 @@ export default function App({ session }: AppProps) {
 
       {view === 'dashboard' ? <AdminDashboard onOpenOrders={() => navegar('orders')} onOpenProducts={() => navegar('products')} />
         : view === 'products' ? <ProductsPage />
+        : view === 'registros' ? <RegistrosPage />
         : view === 'reports' ? <ReportesPage />
         : view === 'notifications' ? <NotificacionesPage session={session} />
         : view === 'audit' ? <AuditoriaPage session={session} /> : <main className="layout">

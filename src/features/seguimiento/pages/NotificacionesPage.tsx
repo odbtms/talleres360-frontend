@@ -18,7 +18,7 @@ export default function NotificacionesPage({ session }: { session: Session }) {
 
   return <main className="seguimiento-page" aria-busy={cargando}>
     <header className="management-page-heading"><h1>Notificaciones</h1>
-      <p>{operador ? 'Tickets de trabajo y cambios de estado de las órdenes del taller.' : 'Avisos sobre tus solicitudes y el estado de tu vehículo.'}</p>
+      <p>{operador ? 'Tickets de las solicitudes del taller y cambios de estado.' : 'Aceptación, retiro, rechazos y comprobantes de tus solicitudes.'}</p>
     </header>
     <form className="panel seguimiento-filtros" onSubmit={(event) => { event.preventDefault(); setOrden(entrada); setPagina(0); actualizar(); }}>
       <label>Número de orden<input type="number" min="1" step="1" max="9007199254740991" value={entrada} onChange={(event) => setEntrada(event.target.value)} placeholder="Todas las órdenes" /></label>
@@ -31,7 +31,7 @@ export default function NotificacionesPage({ session }: { session: Session }) {
       {datos.content.length === 0 ? <p className="empty">No hay notificaciones para los filtros seleccionados.</p>
         : <div className="seguimiento-lista">{datos.content.map((aviso) => <article key={aviso.commandId} className="seguimiento-aviso">
           <header><h2>{aviso.asunto}</h2><span className="seguimiento-estado">{ESTADOS_NOTIFICACION[aviso.estado]}</span></header>
-          <p className="muted">Orden #{aviso.orderId} · {formatDate(aviso.occurredAt)} · {aviso.tipo === 'CORREO' ? 'Correo' : 'Ticket de taller'}</p>
+          <p className="muted">Solicitud #{aviso.orderId} · {formatDate(aviso.occurredAt)} · {aviso.tipo === 'CORREO' ? 'Correo' : aviso.tipo === 'COMPROBANTE' ? 'Comprobante' : 'Ticket de taller'}</p>
           <details><summary>Ver mensaje</summary><p className="seguimiento-mensaje">{aviso.mensaje}</p></details>
           {aviso.estado === 'FALLIDA' && <p role="status">No fue posible enviar este aviso. Contacta al taller si necesitas información.</p>}
         </article>)}</div>}

@@ -2,7 +2,7 @@ const API_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').r
 
 // Punto de enganche para MSAL: cuando haya login, se registra una funcion que devuelve el access token.
 type TokenProvider = () => Promise<string | null>;
-type RequestOptions = { method?: string; body?: unknown; signal?: AbortSignal };
+type RequestOptions = { method?: string; body?: unknown; signal?: AbortSignal; anonymous?: boolean };
 
 let tokenProvider: TokenProvider = async () => null;
 
@@ -10,12 +10,12 @@ export function setTokenProvider(provider: TokenProvider) {
   tokenProvider = provider;
 }
 
-export async function request<T>(path: string, { method = 'GET', body, signal }: RequestOptions = {}): Promise<T> {
+export async function request<T>(path: string, { method = 'GET', body, signal, anonymous = false }: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
   let token: string | null;
-  try { token = await tokenProvider(); }
+  try { token = anonymous ? null : await tokenProvider(); }
   catch { throw new Error('No se pudo validar tu sesión. Vuelve a iniciar sesión.'); }
   if (token) headers.Authorization = `Bearer ${token}`;
 
