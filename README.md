@@ -7,7 +7,9 @@ La rama de trabajo es `fronted`. Consume el [BFF](https://github.com/EmmanuelhxG
 ## Solicitudes de compra
 
 El flujo principal no utiliza pasarela de pago. Un visitante solicita acceso en
-`/registro` con nombre y correo `@duocuc.cl`. Admin consulta **Registros** y habilita
+`/registro` después de autenticarse con Microsoft, usando nombre y correo `@duocuc.cl`.
+Si no existe en el tenant, Admin debe invitarlo primero. No hay registro anónimo.
+Admin consulta **Registros** y habilita
 manualmente la identidad y el rol **Cliente** en Microsoft Entra ID. Registrar la
 solicitud no crea contraseñas ni concede acceso automáticamente.
 

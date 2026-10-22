@@ -53,7 +53,7 @@ function MsalAuthGate({ children }: AuthGateProps) {
     const visualTimeout = window.setTimeout(() => setBusy(false), 8000);
     try {
       await instance.loginPopup({ ...tokenRequest, prompt: 'select_account' });
-      window.history.replaceState(null, '', '/');
+      if (window.location.pathname.replace(/\/+$/, '') !== '/registro') window.history.replaceState(null, '', '/');
     } catch {
       setError('No se pudo iniciar sesión. Inténtalo nuevamente.');
     } finally {
@@ -62,7 +62,13 @@ function MsalAuthGate({ children }: AuthGateProps) {
     }
   }
 
-  if (window.location.pathname.replace(/\/+$/,'') === '/registro') return <RegistroPage onLogin={login} busy={busy} />;
+  const correoClaim = account?.idTokenClaims?.email;
+  const correo = typeof correoClaim === 'string' && /@duocuc\.cl$/i.test(correoClaim) ? correoClaim : account?.username;
+  const registro = () => <RegistroPage onLogin={login} busy={busy} correoAutenticado={account && roles !== null ? correo : undefined} onLogout={() => instance.logoutPopup({ account })} />;
+  if (window.location.pathname.replace(/\/+$/,'') === '/registro') {
+    if (account && roles === null) return <p role="status">Validando tu sesión…</p>;
+    return registro();
+  }
   if (!account) {
     return (
       <PublicSite
@@ -75,7 +81,7 @@ function MsalAuthGate({ children }: AuthGateProps) {
   }
   // Se espera a registrar el token antes de montar la app, para que la primera llamada ya lo lleve
   if (roles === null) return <p className="reviews-status" role="status">Validando tu sesión…</p>;
-  if (!roles.some((role) => ['Admin', 'Operador', 'Cliente'].includes(role))) return <main className="reviews-page"><h1>No se pudo acceder a tu cuenta</h1><p role="alert">{error || 'Tu cuenta no tiene un rol habilitado para esta aplicación.'}</p><button className="btn primary" onClick={() => instance.logoutPopup({ account }).catch(() => setError('No se pudo cerrar la sesión. Inténtalo nuevamente.'))}>Cerrar sesión</button></main>;
+  if (!roles.some((role) => ['Admin', 'Operador', 'Cliente'].includes(role))) return registro();
 
   const session: Session = {
     name: account.name || account.username,
@@ -84,11 +90,8 @@ function MsalAuthGate({ children }: AuthGateProps) {
     logout: () => instance.logoutPopup({ account }),
   };
 
-  const correoClaim = account.idTokenClaims?.email;
-  const correo = typeof correoClaim === 'string' && /@duocuc\.cl$/i.test(correoClaim) ? correoClaim : account.username;
-
   if (roles.includes('Cliente') && !roles.some((role) => role === 'Admin' || role === 'Operador')) {
-    if (!/^[^\s@]+@duocuc\.cl$/i.test(correo)) return <main className="reviews-page"><h1>Acceso institucional requerido</h1><p>Ingresa con una cuenta @duocuc.cl habilitada como Cliente en Entra ID.</p><button className="btn primary" onClick={()=>void session.logout()}>Cerrar sesión</button></main>;
+    if (!correo || !/^[^\s@]+@duocuc\.cl$/i.test(correo)) return <main className="reviews-page"><h1>Acceso institucional requerido</h1><p>Ingresa con una cuenta @duocuc.cl habilitada como Cliente en Entra ID.</p><button className="btn primary" onClick={()=>void session.logout()}>Cerrar sesión</button></main>;
     session.username = correo;
     return <ClientSite session={session} />;
   }

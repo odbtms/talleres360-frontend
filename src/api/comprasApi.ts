@@ -6,6 +6,6 @@ export const comprasApi = {
   propias: () => request<Order[]>('/api/compras'),
 };
 export const registrosApi = {
-  solicitar: (input: { nombre: string; correo: string }) => request<void>('/api/registros', { method: 'POST', body: input, anonymous: true }),
+  solicitar: (input: { nombre: string; correo: string }) => request<void>('/api/registros', { method: 'POST', body: input }),
   listar: () => request<SolicitudRegistro[]>('/api/registros'),
 };
