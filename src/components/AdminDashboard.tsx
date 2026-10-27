@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { reportsApi, type AuditEvent, type SalesReport } from '../api/reportsApi';
 import { productsApi } from '../api/productsApi';
 import { ordersApi } from '../api/ordersApi';
-import { formatDate, formatMoney } from '../utils/format';
+import { formatMoney } from '../utils/format';
+import ListaAuditoria from '../features/seguimiento/components/ListaAuditoria';
 import type { Product } from '../types';
 
 interface Props { onOpenOrders: () => void; onOpenProducts: () => void; }
@@ -50,12 +51,9 @@ export default function AdminDashboard({ onOpenOrders, onOpenProducts }: Props) 
         <div><span>Ventas del período</span><strong>{formatMoney(sales?.revenue ?? 0)}</strong><small>Solo órdenes entregadas</small></div>
         <button type="button" onClick={onOpenProducts}><span>Repuestos con stock bajo</span><strong>{lowStock.length}</strong><small>Ver catálogo</small></button>
       </section>
-      <section className="panel"><h2>Auditoría reciente</h2>
+      <section className="panel"><header className="auditoria-encabezado"><div><h2>Auditoría reciente</h2><p>Últimos 5 eventos. Despliega uno para consultar sus detalles.</p></div><a className="btn ghost" href="/dashboard/audit">Ver historial completo</a></header>
         {audit.length === 0 ? <p className="muted">Aún no hay eventos registrados.</p> :
-          <div className="table-wrap table-wrap--audit" role="region" aria-label="Auditoría reciente" tabIndex={0}><table><thead><tr><th>Fecha</th><th>Orden</th><th>Acción</th><th>Usuario</th><th>Estado</th></tr></thead>
-            <tbody>{audit.slice(0, 20).map((event) => <tr key={event.eventId}>
-              <td>{formatDate(event.occurredAt)}</td><td>#{event.orderId}</td><td>{event.type.replaceAll('_', ' ')}</td>
-              <td title={event.reason || undefined}>{event.actor}{event.reason ? ` · ${event.reason}` : ''}</td><td>{event.status}</td></tr>)}</tbody></table></div>}
+          <ListaAuditoria eventos={audit.slice(0, 5)} />}
       </section>
     </>}
   </main>;

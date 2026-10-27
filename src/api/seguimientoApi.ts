@@ -15,7 +15,7 @@ export const seguimientoApi = {
     return request(`/api/notifications?${query}`, { signal });
   },
   auditoria(filtros: FiltrosAuditoria, page: number, signal: AbortSignal): Promise<Pagina<EventoAuditoria>> {
-    const query = new URLSearchParams({ page: String(page), size: String(TAMANO_PAGINA) });
+    const query = new URLSearchParams({ page: String(page), size: '10' });
     if (filtros.orderId) query.set('orderId', filtros.orderId);
     if (filtros.actor.trim()) query.set('actor', filtros.actor.trim());
     if (filtros.type) query.set('type', filtros.type);

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { seguimientoApi } from '../../../api/seguimientoApi';
-import { formatDate, formatMoney } from '../../../utils/format';
+import ListaAuditoria from '../components/ListaAuditoria';
 import type { Session } from '../../../types';
 import { EVENTOS, FILTROS_AUDITORIA } from '../constants';
 import { usePagina } from '../hooks/usePagina';
@@ -38,13 +38,7 @@ export default function AuditoriaPage({ session }: { session: Session }) {
     {error && <div className="alert" role="alert">{error}<button className="btn ghost" type="button" onClick={actualizar}>Reintentar</button></div>}
     {datos && <section className="panel seguimiento-resultados" aria-label="Historial de eventos">
       {datos.content.length === 0 ? <p className="empty">No hay eventos para los filtros seleccionados.</p>
-        : <ol className="seguimiento-timeline">{datos.content.map((evento) => <li key={evento.eventId}>
-          <article><header><h2>{EVENTOS[evento.type] ?? evento.type}</h2><time dateTime={evento.occurredAt}>{formatDate(evento.occurredAt)}</time></header>
-            <dl><dt>Orden</dt><dd>#{evento.orderId}</dd><dt>Usuario</dt><dd>{evento.actor}</dd><dt>Estado</dt><dd>{evento.status.replaceAll('_', ' ')}</dd><dt>Total registrado</dt><dd>{formatMoney(evento.total)}</dd></dl>
-            {evento.reason && <p>{evento.reason}</p>}
-            <details><summary>Identificación del evento</summary><p>ID: {evento.eventId}</p><p>Origen: {evento.source}</p></details>
-          </article>
-        </li>)}</ol>}
+        : <ListaAuditoria eventos={datos.content} />}
       <Paginacion pagina={pagina} totalPaginas={datos.totalPages} total={datos.totalElements} onCambiar={setPagina} />
     </section>}
   </main>;

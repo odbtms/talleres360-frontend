@@ -22,6 +22,12 @@ Solo Admin usa `/api/products` para inventario completo y CRUD. El cliente consu
 precio de venta/disponibilidad y envía su carrito sin pagos en línea; no reserva
 ni descuenta stock al enviarlo. Los listados se actualizan cada cinco segundos.
 
+Los productos se identifican por su ID numérico automático, visible en el catálogo
+y en la administración. No se solicita un SKU al crear un repuesto: Catálogo genera
+una referencia interna y conserva las anteriores al editar. La auditoría del
+dashboard resume los cinco últimos eventos; el historial completo muestra diez
+por página, con usuario, motivo e identificación desplegables.
+
 El flujo principal no utiliza pasarela de pago. `/registro` recibe nombre y correo
 únicamente `@duocuc.cl`; el envío exige autenticación Microsoft en el tenant configurado,
 pero no todavía el rol Cliente. Si la cuenta no puede autenticarse, el encargado de
@@ -82,7 +88,7 @@ Para desarrollo también puede consumirse BFF directamente en `http://localhost:
 
 ### Sitio público y Cliente
 
-- Inicio con presentación, fotografías y acceso al login. Header con Inicio, Catálogo, Servicios y Nosotros. Sin sesión muestra Registrarse; con sesión de cliente muestra Mis solicitudes, Notificaciones y Atenciones anteriores.
+- Inicio con presentación, fotografías y acceso al login. Header con Inicio, Catálogo, Servicios y Nosotros. Sin sesión muestra Registrarse; con sesión de cliente muestra Mis solicitudes y Notificaciones.
 - Catálogo y carrito con búsqueda, categorías, disponibilidad, cantidades y total estimado. Enviar genera una solicitud, no un pago. Mis solicitudes muestra productos, total, estado y motivo de rechazo cuando corresponde.
 - Agendamiento anterior conservado para mantenciones/arreglos o diagnóstico: cinco pasos de vehículo, propietario, motivo del servicio, fecha y resumen. Se realiza en el único taller, sin elegir región o sucursal. Este formulario mecánico conserva sus validaciones de propietario; no es el carrito de compras. El BFF obtiene el correo del JWT mediante `POST /api/appointments`.
 - Calendario mensual grande: blanco disponible, gris no disponible y amarillo seleccionado. Consulta `GET /api/appointments/availability`; no inventa ocupación. El servicio actual no aplica cupos diarios ni horas de atención.
