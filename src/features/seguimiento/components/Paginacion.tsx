@@ -1,6 +1,7 @@
 interface Props { pagina: number; totalPaginas: number; total: number; onCambiar: (pagina: number) => void; }
 
 export default function Paginacion({ pagina, totalPaginas, total, onCambiar }: Props) {
+  if (total === 0) return null;
   return <nav className="seguimiento-paginacion" aria-label="Paginación de resultados">
     <span>{total} registros · Página {totalPaginas ? pagina + 1 : 0} de {totalPaginas}</span>
     <div className="actions">
