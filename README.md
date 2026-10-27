@@ -22,10 +22,14 @@ Solo Admin usa `/api/products` para inventario completo y CRUD. El cliente consu
 precio de venta/disponibilidad y envía su carrito sin pagos en línea; no reserva
 ni descuenta stock al enviarlo. Los listados se actualizan cada cinco segundos.
 
-El flujo principal no utiliza pasarela de pago. Un visitante solicita acceso en
-`/registro` después de autenticarse con Microsoft, usando nombre y correo `@duocuc.cl`
-o una cuenta `@tu-tenant.onmicrosoft.com`. Ambas requieren autorización en el tenant
-Entra configurado; el dominio no asigna roles ni habilita automáticamente el acceso.
+El flujo principal no utiliza pasarela de pago. `/registro` recibe nombre y correo
+únicamente `@duocuc.cl`; el envío exige autenticación Microsoft en el tenant configurado,
+pero no todavía el rol Cliente. Si la cuenta no puede autenticarse, el encargado de
+Entra primero debe agregarla o invitarla y permitir su acceso a la aplicación.
+Las cuentas `@tu-tenant.onmicrosoft.com` ya habilitadas conservan su login y compras;
+no pueden solicitar alta mediante este formulario. Ningún dominio asigna roles.
+El borrador de registro se conserva en la sesión del navegador durante el login y
+se retira al guardar correctamente. No se almacenan contraseñas.
 La identidad debe poder autenticarse en el tenant. No hay registro anónimo ni
 invitaciones automáticas desde la aplicación. La persona responsable de Entra ID
 gestiona manualmente el alta y el rol **Cliente**. **Registros** permite consultar

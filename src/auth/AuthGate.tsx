@@ -8,8 +8,9 @@ import { rolesFromToken } from './roles';
 import PublicSite from '../features/home/PublicSite';
 import ClientSite from '../features/client/ClientSite';
 import type { Session } from '../types';
-import RegistroPage from '../features/compras/RegistroPage';
+import RegistroPage from '../features/compras/SolicitarRegistroPage';
 import { obtenerCorreoPermitido } from './correoPermitido';
+import { obtenerCorreoRegistro } from './correoRegistro';
 
 interface AuthGateProps {
   children: (session: Session) => ReactNode;
@@ -69,7 +70,8 @@ function MsalAuthGate({ children }: AuthGateProps) {
     account?.idTokenClaims?.upn,
     account?.username,
   );
-  const registro = () => <RegistroPage onLogin={login} busy={busy} correoAutenticado={account && roles !== null ? correo : undefined} onLogout={() => instance.logoutPopup({ account })} />;
+  const correoDuoc = obtenerCorreoRegistro(account?.idTokenClaims?.email, account?.idTokenClaims?.preferred_username, account?.idTokenClaims?.upn, account?.username);
+  const registro = () => <RegistroPage onLogin={login} busy={busy} correoAutenticado={account && roles !== null ? correoDuoc || correo : undefined} onLogout={() => instance.logoutPopup({ account })} />;
   if (window.location.pathname.replace(/\/+$/,'') === '/registro') {
     if (account && roles === null) return <p role="status">Validando tu sesión…</p>;
     return registro();

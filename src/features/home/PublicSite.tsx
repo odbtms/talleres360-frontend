@@ -1,7 +1,7 @@
 import HomePage from './pages/HomePage';
 import SchedulingPage from './pages/SchedulingPage';
 import type { PublicPageProps } from './types/home';
-import RegistroPage from '../compras/RegistroPage';
+import RegistroPage from '../compras/SolicitarRegistroPage';
 import PublicHeader from './components/PublicHeader';
 
 export default function PublicSite(props: PublicPageProps) {

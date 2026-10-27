@@ -14,3 +14,6 @@
 .pedido summary { align-items: center; padding-block: .4rem; }
 .pedido-detalle { margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; line-height: 1.7; }
 .tienda-catalogo-completo { min-width: 0; }
+.registro-campos { display: grid; gap: 1.25rem; min-width: 0; }
+.registro-campos input { min-height: 44px; }
+.registro-form > p, .registro-form form p { line-height: 1.65; margin: 0; }
