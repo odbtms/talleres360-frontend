@@ -82,6 +82,7 @@ export interface StockConfirmation {
 }
 
 export interface Product { id: number; sku: string; name: string; stock: number; price: number; active: boolean; available: boolean; categoriaId?: number | null; categoriaNombre?: string; }
+export type ProductoCatalogo = Omit<Product, 'stock'>;
 export interface ProductInput { sku: string; name: string; stock: number; price: number; active: boolean; categoriaId?: number | null; }
 export interface Categoria { id: number; nombre: string; descripcion: string | null; activa: boolean; }
 export interface CategoriaInput { nombre: string; descripcion: string; activa: boolean; }

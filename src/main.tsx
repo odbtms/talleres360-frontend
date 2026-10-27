@@ -5,6 +5,7 @@ import { isEntraConfigured, msalConfig } from './auth/authConfig';
 import AuthGate from './auth/AuthGate';
 import App from './App';
 import './styles.css';
+import './styles/public-navigation.css';
 import type { Session } from './types';
 
 // Como en el tutorial: no se llama a msal.initialize() a mano, MsalProvider se encarga

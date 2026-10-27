@@ -4,13 +4,13 @@ import type { SchedulingOption, ServiceHighlight } from '../types/home';
 
 export const SERVICE_HIGHLIGHTS: ServiceHighlight[] = [
   {
-    title: 'Agenda tu atención',
-    description: 'Solicita una revisión para tu vehículo y entrega los antecedentes necesarios desde un solo lugar.',
+    title: 'Solicita tus repuestos',
+    description: 'Elige productos del catálogo y envía tu carrito al taller. No realizamos cobros en línea.',
     icon: 'calendar',
   },
   {
     title: 'Sigue cada avance',
-    description: 'Consulta el estado de tu orden y mantente informado durante todo el proceso de reparación.',
+    description: 'Consulta tus solicitudes actuales y anteriores, desde la revisión del operador hasta el retiro.',
     icon: 'tracking',
   },
   {

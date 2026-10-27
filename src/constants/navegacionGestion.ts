@@ -1,7 +1,7 @@
 import type { OpcionGestion, VistaGestion } from '../types/gestion';
 
 export const OPCIONES_GESTION: readonly OpcionGestion[] = [
-  { id: 'dashboard', etiqueta: 'Dashboard', descripcion: 'Resumen del taller', roles: ['Admin'] },
+  { id: 'dashboard', etiqueta: 'Dashboard', descripcion: 'Resumen del taller', roles: ['Admin', 'Operador'] },
   { id: 'orders', etiqueta: 'Órdenes', descripcion: 'Solicitudes y trabajos', roles: ['Admin', 'Operador'] },
   { id: 'products', etiqueta: 'Productos', descripcion: 'Catálogo y existencias', roles: ['Admin'] },
   { id: 'registros', etiqueta: 'Registros', descripcion: 'Solicitudes de acceso', roles: ['Admin'] },

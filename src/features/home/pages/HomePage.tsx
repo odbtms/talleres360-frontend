@@ -23,7 +23,8 @@ export default function HomePage({
         loginDisabled={configurationMissing || loginDisabled}
         accountName={session?.name}
         onLogout={session?.logout}
-        showClientNavigation={Boolean(session)}
+        roles={session?.roles}
+        showClientNavigation={Boolean(session?.roles.includes('Cliente') && !session.roles.some(r => r === 'Admin' || r === 'Operador'))}
       />
       {error && <div className="public-alert" role="alert">{error}</div>}
       {configurationMissing && (
@@ -32,7 +33,7 @@ export default function HomePage({
         </div>
       )}
       <main>
-        <HeroSection />
+        <HeroSection session={session} />
         <ServiceHighlights />
         <section className="about-section" id="nosotros">
           <div>
@@ -40,14 +41,14 @@ export default function HomePage({
             <h2>Conectamos el taller con quien más importa: el cliente</h2>
           </div>
           <p>
-            Organizamos la información de cada atención para que clientes, operadores y administradores
-            trabajen sobre un mismo proceso, con responsabilidades claramente diferenciadas.
+            Somos un único taller. Te ayudamos a elegir repuestos y coordinar su retiro:
+            envías tu solicitud, nuestro operador la revisa y puedes seguir su estado desde tu cuenta.
           </p>
         </section>
       </main>
       <footer className="public-footer">
         <BrandLogo variant="footer" />
-        <span>Gestión simple y transparente para tu vehículo.</span>
+        <span>Repuestos y solicitudes de retiro, sin pagos en línea.</span>
       </footer>
     </div>
   );

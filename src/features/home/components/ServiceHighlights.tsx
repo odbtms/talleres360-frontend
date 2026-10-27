@@ -17,7 +17,7 @@ export default function ServiceHighlights() {
       <div className="section-heading">
         <p className="section-eyebrow">Todo en un mismo lugar</p>
         <h2>Una experiencia clara de principio a fin</h2>
-        <p>Menos incertidumbre y más control sobre el servicio de tu vehículo.</p>
+        <p>Elige repuestos, solicita su preparación y retíralos cuando el taller te avise.</p>
       </div>
       <div className="service-grid">
         {SERVICE_HIGHLIGHTS.map((service) => (

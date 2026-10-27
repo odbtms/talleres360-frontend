@@ -1,5 +1,6 @@
 import LoginButton from '../../../auth/LoginButton';
 import BrandLogo from './BrandLogo';
+import { useState } from 'react';
 
 interface PublicHeaderProps {
   onLogin?: () => void | Promise<void>;
@@ -8,6 +9,7 @@ interface PublicHeaderProps {
   accountName?: string;
   onLogout?: () => void | Promise<void>;
   showClientNavigation?: boolean;
+  roles?: readonly string[];
 }
 
 export default function PublicHeader({
@@ -17,27 +19,32 @@ export default function PublicHeader({
   accountName,
   onLogout,
   showClientNavigation = false,
+  roles = [],
 }: PublicHeaderProps) {
+  const [abierto, setAbierto] = useState(false);
+  const personal = roles.some(rol => rol === 'Admin' || rol === 'Operador');
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
   return (
     <header className="public-header">
       <a className="public-brand" href="/" aria-label="Ir al inicio de Talleres360">
         <BrandLogo />
       </a>
 
-      <nav className="public-navigation" aria-label="Navegación principal">
-        <a href="/">Inicio</a>
-        <a href="/catalogo">Catálogo</a>
+      <button className="public-menu-toggle" type="button" aria-controls="public-navigation" aria-expanded={abierto} onClick={() => setAbierto(valor => !valor)}>{abierto ? 'Cerrar menú' : 'Menú'}</button>
+      <nav id="public-navigation" className={`public-navigation${abierto ? ' is-open' : ''}`} aria-label="Navegación principal">
+        <a href="/" aria-current={path === '/' ? 'page' : undefined}>Inicio</a>
+        <a href="/catalogo" aria-current={path === '/catalogo' ? 'page' : undefined}>Catálogo</a>
         {showClientNavigation && <a href="/mis-solicitudes">Mis solicitudes</a>}
         {showClientNavigation && <a href="/notificaciones">Notificaciones</a>}
-        {!showClientNavigation && <a href="/registro">Registrarse</a>}
-        {showClientNavigation && <a href="/mis-revisiones">Atenciones anteriores</a>}
+        {!accountName && <a href="/registro">Registrarse</a>}
         <a href="/#servicios">Servicios</a>
         <a href="/#nosotros">Nosotros</a>
       </nav>
 
       {accountName ? (
         <div className="public-session">
-          <span className="public-account">{accountName}</span>
+          {personal && <a className="public-dashboard-link" href="/dashboard">Dashboard</a>}
+          <span className="public-account" title={accountName}>{accountName}</span>
           {onLogout && <button type="button" onClick={onLogout}>Cerrar sesión</button>}
         </div>
       ) : (

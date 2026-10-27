@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Pagina } from '../types';
+import { ErrorApi } from '../../../api/http';
 
 /** Cancela lecturas anteriores para que cambiar filtros no reemplace datos con respuestas antiguas. */
 export function usePagina<T>(cargar: (signal: AbortSignal) => Promise<Pagina<T>>, mensajeError: string) {
@@ -14,8 +15,8 @@ export function usePagina<T>(cargar: (signal: AbortSignal) => Promise<Pagina<T>>
     setDatos(null);
     cargar(controller.signal).then((resultado) => {
       if (!controller.signal.aborted) setDatos(resultado);
-    }).catch(() => {
-      if (!controller.signal.aborted) setError(mensajeError);
+    }).catch((error) => {
+      if (!controller.signal.aborted) setError(error instanceof ErrorApi ? error.message : mensajeError);
     }).finally(() => {
       if (!controller.signal.aborted) setCargando(false);
     });

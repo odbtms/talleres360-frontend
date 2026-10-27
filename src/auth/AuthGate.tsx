@@ -9,6 +9,7 @@ import PublicSite from '../features/home/PublicSite';
 import ClientSite from '../features/client/ClientSite';
 import type { Session } from '../types';
 import RegistroPage from '../features/compras/RegistroPage';
+import { obtenerCorreoPermitido } from './correoPermitido';
 
 interface AuthGateProps {
   children: (session: Session) => ReactNode;
@@ -62,8 +63,12 @@ function MsalAuthGate({ children }: AuthGateProps) {
     }
   }
 
-  const correoClaim = account?.idTokenClaims?.email;
-  const correo = typeof correoClaim === 'string' && /@duocuc\.cl$/i.test(correoClaim) ? correoClaim : account?.username;
+  const correo = obtenerCorreoPermitido(
+    account?.idTokenClaims?.email,
+    account?.idTokenClaims?.preferred_username,
+    account?.idTokenClaims?.upn,
+    account?.username,
+  );
   const registro = () => <RegistroPage onLogin={login} busy={busy} correoAutenticado={account && roles !== null ? correo : undefined} onLogout={() => instance.logoutPopup({ account })} />;
   if (window.location.pathname.replace(/\/+$/,'') === '/registro') {
     if (account && roles === null) return <p role="status">Validando tu sesión…</p>;
@@ -91,12 +96,12 @@ function MsalAuthGate({ children }: AuthGateProps) {
   };
 
   if (roles.includes('Cliente') && !roles.some((role) => role === 'Admin' || role === 'Operador')) {
-    if (!correo || !/^[^\s@]+@duocuc\.cl$/i.test(correo)) return <main className="reviews-page"><h1>Acceso institucional requerido</h1><p>Ingresa con una cuenta @duocuc.cl habilitada como Cliente en Entra ID.</p><button className="btn primary" onClick={()=>void session.logout()}>Cerrar sesión</button></main>;
+    if (!correo) return <main className="reviews-page"><h1>Cuenta autorizada requerida</h1><p>Ingresa con una cuenta @duocuc.cl o de un dominio onmicrosoft.com habilitada como Cliente en Entra ID.</p><button className="btn primary" onClick={()=>void session.logout()}>Cerrar sesión</button></main>;
     session.username = correo;
-    return <ClientSite session={session} />;
   }
-
-  return children(session);
+  const gestion = window.location.pathname === '/dashboard' || window.location.pathname.startsWith('/dashboard/');
+  if (gestion && roles.some((role) => role === 'Admin' || role === 'Operador')) return children(session);
+  return <ClientSite session={session} />;
 }
 
 export default function AuthGate({ children }: AuthGateProps) {

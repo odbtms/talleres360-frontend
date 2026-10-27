@@ -6,6 +6,11 @@ type RequestOptions = { method?: string; body?: unknown; signal?: AbortSignal; a
 
 let tokenProvider: TokenProvider = async () => null;
 
+/** Mensajes seguros para la interfaz; no expone endpoints ni respuestas internas. */
+export class ErrorApi extends Error {
+  constructor(mensaje: string, public readonly estado = 0) { super(mensaje); this.name = 'ErrorApi'; }
+}
+
 export function setTokenProvider(provider: TokenProvider) {
   tokenProvider = provider;
 }
@@ -16,7 +21,7 @@ export async function request<T>(path: string, { method = 'GET', body, signal, a
 
   let token: string | null;
   try { token = anonymous ? null : await tokenProvider(); }
-  catch { throw new Error('No se pudo validar tu sesión. Vuelve a iniciar sesión.'); }
+  catch { throw new ErrorApi('No se pudo validar tu sesión. Vuelve a iniciar sesión.'); }
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let res: Response;
@@ -27,18 +32,19 @@ export async function request<T>(path: string, { method = 'GET', body, signal, a
     body: body !== undefined ? JSON.stringify(body) : undefined,
   }); } catch (error) {
     if (signal?.aborted) throw error;
-    throw new Error('No se pudo conectar con el servicio. Inténtalo nuevamente.');
+    throw new ErrorApi('No se pudo conectar con el servicio. Comprueba tu conexión e inténtalo nuevamente.');
   }
 
   if (res.status === 204) return null as T;
   const data = (await res.json().catch(() => null)) as { detail?: string } | T | null;
   if (!res.ok) {
-    if (res.status === 401) throw new Error('Tu sesión venció. Cierra sesión e ingresa nuevamente.');
-    if (res.status === 403) throw new Error('Tu cuenta no tiene permisos para realizar esta acción.');
-    if (res.status === 400) throw new Error('No se pudo guardar. Revisa los datos ingresados.');
-    if (res.status === 404) throw new Error('No encontramos el registro solicitado. Actualiza la página.');
-    if (res.status === 409) throw new Error('No se pudo completar la operación: los datos o el stock cambiaron. Actualiza y revisa el estado de la solicitud.');
-    throw new Error('No se pudo completar la operación. Inténtalo nuevamente.');
+    if (res.status === 401) throw new ErrorApi('Tu sesión venció o no pudo validarse. Cierra sesión e ingresa nuevamente.', 401);
+    if (res.status === 403) throw new ErrorApi('Tu cuenta no tiene permisos para consultar esta información o realizar esta acción.', 403);
+    if (res.status === 400) throw new ErrorApi('No se pudo completar la solicitud. Revisa los datos ingresados.', 400);
+    if (res.status === 404) throw new ErrorApi('No encontramos la información solicitada. Actualiza la página.', 404);
+    if (res.status === 409) throw new ErrorApi('Los datos o la disponibilidad cambiaron. Actualiza y revisa tu solicitud.', 409);
+    if (res.status >= 500) throw new ErrorApi('El servicio no está disponible temporalmente. Inténtalo nuevamente en unos momentos.', res.status);
+    throw new ErrorApi('No se pudo completar la operación. Inténtalo nuevamente.', res.status);
   }
   return data as T;
 }

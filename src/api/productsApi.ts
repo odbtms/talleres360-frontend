@@ -1,8 +1,10 @@
 import { request } from './http';
-import type { Product, ProductInput, Categoria, CategoriaInput } from '../types';
+import type { Product, ProductoCatalogo, ProductInput, Categoria, CategoriaInput } from '../types';
 
 export const productsApi = {
   list: () => request<Product[]>('/api/products'),
+  catalogo: () => request<ProductoCatalogo[]>('/api/catalogo'),
+  cargaInicial: () => request<{ agregados: number }>('/api/products/carga-inicial', { method: 'POST' }),
   create: (input: ProductInput) => request<Product>('/api/products', { method: 'POST', body: input }),
   update: (id: number, input: ProductInput) => request<Product>(`/api/products/${id}`, { method: 'PUT', body: input }),
   remove: (id: number) => request<void>(`/api/products/${id}`, { method: 'DELETE' }),

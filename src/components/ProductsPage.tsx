@@ -21,7 +21,7 @@ export default function ProductsPage() {
     catch { setError('No pudimos cargar los productos. Inténtalo nuevamente.'); }
     finally { setLoading(false); }
   }
-  useEffect(() => { void reload(); }, []);
+  useEffect(() => { void reload(); const timer = window.setInterval(() => void reload(), 5000); return () => window.clearInterval(timer); }, []);
 
   function edit(product: Product) {
     setEditingId(product.id);
@@ -43,7 +43,14 @@ export default function ProductsPage() {
   }
 
   return <main className="products-page panel">
-    <header><h1>Productos y stock</h1><p>El administrador define precio, disponibilidad y existencias. El operador solo consulta y selecciona repuestos.</p></header>
+    <header><h1>Productos y stock</h1><p>Solo el administrador ve las cantidades de inventario y modifica precios y stock. Actualización cada 5 segundos.</p>
+      <button className="btn ghost" type="button" disabled={saving} onClick={() => {
+        if (!window.confirm('¿Agregar repuestos de ejemplo con precios y existencias editables? No se modificarán productos existentes.')) return;
+        setSaving(true); setError('');
+        void productsApi.cargaInicial().then(async resultado => { setNotice(`${resultado.agregados} repuestos de ejemplo agregados. Revisa sus precios y stock antes de usarlos.`); await reload(); })
+          .catch(() => setError('No se pudieron agregar los repuestos de ejemplo.'))
+          .finally(() => setSaving(false));
+      }}>Agregar repuestos de ejemplo</button></header>
     {error && <div className="alert" role="alert">{error}</div>}
     {notice && <p className="catalog-notice" role="status">{notice}</p>}
     <form className="catalog-form" onSubmit={(event) => void save(event)}>

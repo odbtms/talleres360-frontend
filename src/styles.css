@@ -507,6 +507,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid #c9dafb; border-c
 
 /* Botones */
 .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  text-decoration: none; line-height: 1.4; vertical-align: middle;
   font: inherit; cursor: pointer; border-radius: 6px; padding: 7px 14px;
   border: 1px solid transparent; background: none; color: var(--text);
 }

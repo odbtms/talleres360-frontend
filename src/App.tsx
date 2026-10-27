@@ -8,6 +8,7 @@ import OrderForm from './components/OrderForm';
 import OrderItemsForm from './components/OrderItemsForm';
 import ProductsPage from './components/ProductsPage';
 import AdminDashboard from './components/AdminDashboard';
+import OperatorDashboard from './components/OperatorDashboard';
 import MenuLateral from './layouts/MenuLateral';
 import ReportesPage from './features/reports/pages/ReportesPage';
 import NotificacionesPage from './features/seguimiento/pages/NotificacionesPage';
@@ -27,9 +28,9 @@ interface AppProps {
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 function vistaInicial(session: Session): VistaGestion {
-  if (window.location.pathname === '/audit' && session.roles.includes('Admin')) return 'audit';
-  if (window.location.pathname === '/notificaciones' && session.roles.includes('Operador')) return 'notifications';
-  return session.roles.includes('Admin') ? 'dashboard' : 'orders';
+  const destino = window.location.pathname.split('/')[2];
+  const opcion = OPCIONES_GESTION.find(item => item.id === destino && item.roles.some(rol => session.roles.includes(rol)));
+  return opcion && opcion.id !== 'new-order' ? opcion.id : 'dashboard';
 }
 
 export default function App({ session }: AppProps) {
@@ -52,7 +53,7 @@ export default function App({ session }: AppProps) {
     setError('');
     setView(destino === 'new-order' ? 'orders' : destino);
     setFormMode(destino === 'new-order' ? 'create' : null);
-    const ruta = destino === 'audit' ? '/audit' : destino === 'notifications' ? '/notificaciones' : '/';
+    const ruta = destino === 'dashboard' ? '/dashboard' : `/dashboard/${destino === 'new-order' ? 'orders' : destino}`;
     if (window.location.pathname !== ruta) window.history.pushState(null, '', ruta);
   }
 
@@ -146,6 +147,7 @@ export default function App({ session }: AppProps) {
           <div className="brand">{formMode === 'create' ? 'Nueva orden' : TITULOS_GESTION[view]}</div>
         </div>
         <div className="topbar-actions">
+          <a className="btn ghost" href="/">Ver sitio</a>
           {canCreate && <button className="btn primary" type="button" onClick={() => navegar('new-order')}>Nueva orden</button>}
           <div className="user">
             <span className="user-name">
@@ -168,7 +170,7 @@ export default function App({ session }: AppProps) {
         </div>
       )}
 
-      {view === 'dashboard' ? <AdminDashboard onOpenOrders={() => navegar('orders')} onOpenProducts={() => navegar('products')} />
+      {view === 'dashboard' ? session.roles.includes('Admin') ? <AdminDashboard onOpenOrders={() => navegar('orders')} onOpenProducts={() => navegar('products')} /> : <OperatorDashboard onOpenOrders={() => navegar('orders')} onOpenNotifications={() => navegar('notifications')} />
         : view === 'products' ? <ProductsPage />
         : view === 'registros' ? <RegistrosPage />
         : view === 'reports' ? <ReportesPage />
@@ -188,7 +190,7 @@ export default function App({ session }: AppProps) {
               onCancel={() => setFormMode(null)}
             />
           ) : formMode === 'items' && selected ? (
-            <OrderItemsForm key={selected.id} order={selected} onSubmit={handleItemsSave} onTechnicalSubmit={selected.status !== 'RECIBIDA' ? handleTechnicalSave : undefined} onCancel={() => setFormMode(null)} />
+            <OrderItemsForm key={selected.id} order={selected} isAdmin={session.roles.includes('Admin')} onSubmit={handleItemsSave} onTechnicalSubmit={selected.status !== 'RECIBIDA' ? handleTechnicalSave : undefined} onCancel={() => setFormMode(null)} />
           ) : selected ? (
             <OrderDetail
               key={`${selected.id}-${selected.updatedAt}`}

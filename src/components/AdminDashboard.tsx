@@ -33,12 +33,12 @@ export default function AdminDashboard({ onOpenOrders, onOpenProducts }: Props) 
     finally { if (active) setLoading(false); }
     }
     void refresh();
-    const timer = window.setInterval(() => void refresh(), 10000);
+    const timer = window.setInterval(() => void refresh(), 5000);
     return () => { active = false; window.clearInterval(timer); };
   }, [fromDate, toDate]);
   const lowStock = products.filter((product) => product.active && product.stock <= 5);
   return <main className="dashboard">
-    <header className="dashboard-heading"><div><h1>Dashboard</h1><p>Resumen operativo, ventas y actividad registrada. Se actualiza cada 10 segundos.</p></div>
+    <header className="dashboard-heading"><div><h1>Dashboard</h1><p>Resumen operativo, ventas y actividad registrada. Se actualiza cada 5 segundos.</p></div>
       <div className="dashboard-range"><label>Desde<input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} /></label>
         <label>Hasta<input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} /></label></div></header>
     {loading && <p>Cargando indicadores…</p>}

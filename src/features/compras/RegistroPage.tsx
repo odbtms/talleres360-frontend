@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { registrosApi } from '../../api/comprasApi';
 import PublicHeader from '../home/components/PublicHeader';
 import type { PublicPageProps } from '../home/types/home';
+import { normalizarCorreoPermitido } from '../../auth/correoPermitido';
 import './compras.css';
 
 interface RegistroProps extends PublicPageProps {
@@ -14,7 +15,7 @@ export default function RegistroPage({ correoAutenticado, onLogout, ...publico }
   const [enviando, setEnviando] = useState(false);
   const [terminado, setTerminado] = useState(false);
   const [error, setError] = useState('');
-  const institucional = /^[^\s@]+@duocuc\.cl$/i.test(correoAutenticado || '');
+  const institucional = normalizarCorreoPermitido(correoAutenticado) !== undefined;
 
   async function solicitar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -39,11 +40,11 @@ export default function RegistroPage({ correoAutenticado, onLogout, ...publico }
     <PublicHeader {...publico} />
     <main className="tienda"><section className="panel registro-form">
       <h1>Solicita tu acceso</h1>
-      <p>Acceso exclusivo para correos @duocuc.cl. La persona responsable de Microsoft Entra ID habilita manualmente el rol Cliente.</p>
+      <p>Se admiten correos @duocuc.cl y cuentas de dominios onmicrosoft.com autorizadas en Microsoft Entra ID. La persona responsable habilita manualmente el rol Cliente.</p>
       {!correoAutenticado ? <>
         <p>Primero inicia sesión con Microsoft. Tu cuenta debe estar habilitada para acceder a esta aplicación en Entra ID. No se admiten registros anónimos.</p>
         <button className="btn primary" disabled={publico.busy || publico.loginDisabled || publico.configurationMissing} onClick={() => void publico.onLogin?.()}>Iniciar sesión con Microsoft</button>
-      </> : !institucional ? <p role="alert">La cuenta autenticada no tiene un correo @duocuc.cl. Ingresa con tu cuenta institucional.</p>
+      </> : !institucional ? <p role="alert">Ingresa con una cuenta @duocuc.cl o de un dominio onmicrosoft.com autorizada en Entra ID.</p>
         : terminado ? <p role="status">Solicitud recibida. El acceso al catálogo se habilitará cuando la persona responsable de Entra ID asigne el rol Cliente. Después cierra sesión y vuelve a ingresar.</p>
         : <form onSubmit={evento => void solicitar(evento)} className="registro-form">
           <label>Nombre y apellido<input required minLength={3} maxLength={120} value={nombre} onChange={evento => setNombre(evento.target.value.replace(/[^\p{L} ]/gu, ''))} autoComplete="name" /></label>
