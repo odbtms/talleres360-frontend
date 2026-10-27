@@ -43,3 +43,9 @@ export interface FiltrosAuditoria {
   desde: string;
   hasta: string;
 }
+
+export interface SolicitudAuditoria {
+  orderId: number;
+  eventos: number;
+  ultimaActividad: string;
+}

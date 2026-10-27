@@ -1,6 +1,6 @@
 import { request } from './http';
 import { TAMANO_PAGINA } from '../features/seguimiento/constants';
-import type { EventoAuditoria, FiltrosAuditoria, Notificacion, Pagina } from '../features/seguimiento/types';
+import type { EventoAuditoria, FiltrosAuditoria, Notificacion, Pagina, SolicitudAuditoria } from '../features/seguimiento/types';
 
 // Fechas elegidas en la zona local del navegador; hasta es exclusivo e incluye el último día completo.
 function fechaLimite(fecha: string, siguienteDia: boolean): string {
@@ -9,18 +9,26 @@ function fechaLimite(fecha: string, siguienteDia: boolean): string {
 }
 
 export const seguimientoApi = {
+  solicitudesAuditoria(filtros: FiltrosAuditoria, page: number, signal?: AbortSignal, size = 10): Promise<Pagina<SolicitudAuditoria>> {
+    return request(`/api/audit/solicitudes?${parametrosAuditoria(filtros, page, size)}`, { signal });
+  },
   notificaciones(orderId: string, page: number, signal: AbortSignal): Promise<Pagina<Notificacion>> {
     const query = new URLSearchParams({ page: String(page), size: String(TAMANO_PAGINA) });
     if (orderId) query.set('orderId', orderId);
     return request(`/api/notifications?${query}`, { signal });
   },
   auditoria(filtros: FiltrosAuditoria, page: number, signal: AbortSignal): Promise<Pagina<EventoAuditoria>> {
-    const query = new URLSearchParams({ page: String(page), size: '10' });
-    if (filtros.orderId) query.set('orderId', filtros.orderId);
-    if (filtros.actor.trim()) query.set('actor', filtros.actor.trim());
-    if (filtros.type) query.set('type', filtros.type);
-    if (filtros.desde) query.set('from', fechaLimite(filtros.desde, false));
-    if (filtros.hasta) query.set('to', fechaLimite(filtros.hasta, true));
+    const query = parametrosAuditoria(filtros, page, 10);
     return request(`/api/audit?${query}`, { signal });
   },
 };
+
+function parametrosAuditoria(filtros: FiltrosAuditoria, page: number, size: number): URLSearchParams {
+  const query = new URLSearchParams({ page: String(page), size: String(size) });
+  if (filtros.orderId) query.set('orderId', filtros.orderId);
+  if (filtros.actor.trim()) query.set('actor', filtros.actor.trim());
+  if (filtros.type) query.set('type', filtros.type);
+  if (filtros.desde) query.set('from', fechaLimite(filtros.desde, false));
+  if (filtros.hasta) query.set('to', fechaLimite(filtros.hasta, true));
+  return query;
+}

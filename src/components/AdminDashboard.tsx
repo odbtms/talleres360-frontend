@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import { reportsApi, type AuditEvent, type SalesReport } from '../api/reportsApi';
+import { reportsApi, type SalesReport } from '../api/reportsApi';
+import { seguimientoApi } from '../api/seguimientoApi';
+import { FILTROS_AUDITORIA } from '../features/seguimiento/constants';
+import type { SolicitudAuditoria } from '../features/seguimiento/types';
 import { productsApi } from '../api/productsApi';
 import { ordersApi } from '../api/ordersApi';
 import { formatMoney } from '../utils/format';
-import ListaAuditoria from '../features/seguimiento/components/ListaAuditoria';
+import SolicitudesAuditoria from '../features/seguimiento/components/SolicitudesAuditoria';
 import type { Product } from '../types';
 
 interface Props { onOpenOrders: () => void; onOpenProducts: () => void; }
@@ -12,7 +15,7 @@ export default function AdminDashboard({ onOpenOrders, onOpenProducts }: Props) 
   const [fromDate, setFromDate] = useState(() => dateValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
   const [toDate, setToDate] = useState(() => dateValue(new Date()));
   const [sales, setSales] = useState<SalesReport | null>(null);
-  const [audit, setAudit] = useState<AuditEvent[]>([]);
+  const [audit, setAudit] = useState<SolicitudAuditoria[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orderCount, setOrderCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -27,9 +30,9 @@ export default function AdminDashboard({ onOpenOrders, onOpenProducts }: Props) 
     const to = until.toISOString();
     try {
       const [report, events, catalog, allOrders] = await Promise.all([
-        reportsApi.sales(from, to), reportsApi.audit(), productsApi.list(), ordersApi.list(),
+        reportsApi.sales(from, to), seguimientoApi.solicitudesAuditoria(FILTROS_AUDITORIA, 0, undefined, 5), productsApi.list(), ordersApi.list(),
       ]);
-      if (active) { setSales(report); setAudit(events); setProducts(catalog); setOrderCount(allOrders.length); setError(''); }
+      if (active) { setSales(report); setAudit(events.content); setProducts(catalog); setOrderCount(allOrders.length); setError(''); }
     } catch { if (active) setError('No pudimos cargar el dashboard. Revisa la conexión e inténtalo nuevamente.'); }
     finally { if (active) setLoading(false); }
     }
@@ -51,9 +54,9 @@ export default function AdminDashboard({ onOpenOrders, onOpenProducts }: Props) 
         <div><span>Ventas del período</span><strong>{formatMoney(sales?.revenue ?? 0)}</strong><small>Solo órdenes entregadas</small></div>
         <button type="button" onClick={onOpenProducts}><span>Repuestos con stock bajo</span><strong>{lowStock.length}</strong><small>Ver catálogo</small></button>
       </section>
-      <section className="panel"><header className="auditoria-encabezado"><div><h2>Auditoría reciente</h2><p>Últimos 5 eventos. Despliega uno para consultar sus detalles.</p></div><a className="btn ghost" href="/dashboard/audit">Ver historial completo</a></header>
+      <section className="panel"><header className="auditoria-encabezado"><div><h2>Auditoría reciente</h2><p>Las 5 solicitudes con actividad más reciente. Abre una para revisar su historial.</p></div><a className="btn ghost" href="/dashboard/audit">Ver historial completo</a></header>
         {audit.length === 0 ? <p className="muted">Aún no hay eventos registrados.</p> :
-          <ListaAuditoria eventos={audit.slice(0, 5)} />}
+          <SolicitudesAuditoria solicitudes={audit} />}
       </section>
     </>}
   </main>;

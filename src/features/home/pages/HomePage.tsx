@@ -33,7 +33,7 @@ export default function HomePage({
         </div>
       )}
       <main>
-        <HeroSection session={session} />
+        <HeroSection />
         <ServiceHighlights />
         <section className="about-section" id="nosotros">
           <div>

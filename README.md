@@ -25,8 +25,14 @@ ni descuenta stock al enviarlo. Los listados se actualizan cada cinco segundos.
 Los productos se identifican por su ID numérico automático, visible en el catálogo
 y en la administración. No se solicita un SKU al crear un repuesto: Catálogo genera
 una referencia interna y conserva las anteriores al editar. La auditoría del
-dashboard resume los cinco últimos eventos; el historial completo muestra diez
-por página, con usuario, motivo e identificación desplegables.
+dashboard resume las cinco solicitudes con actividad más reciente. El historial
+completo pagina diez solicitudes, con un bloque por ID. Al abrir un bloque se
+consultan sus movimientos, paginados dentro de esa solicitud; cada movimiento
+conserva usuario, motivo e identificación desplegables. Los filtros se aplican
+tanto al listado de solicitudes como a los movimientos mostrados.
+
+Sin sesión, **Registrarse** aparece junto a **Iniciar sesión** en el encabezado.
+La sección principal del inicio mantiene únicamente el acceso al catálogo.
 
 El flujo principal no utiliza pasarela de pago. `/registro` recibe nombre y correo
 únicamente `@duocuc.cl`; el envío exige autenticación Microsoft en el tenant configurado,

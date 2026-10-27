@@ -1,6 +1,4 @@
-import type { Session } from '../../../types';
-
-export default function HeroSection({ session }: { session?: Session }) {
+export default function HeroSection() {
   return (
     <section className="hero" id="inicio">
       <div className="hero-content">
@@ -14,7 +12,6 @@ export default function HeroSection({ session }: { session?: Session }) {
           <a className="btn primary" href="/catalogo">
             Explorar catálogo
           </a>
-          {!session && <a className="btn public-secondary-button" href="/registro">Solicitar registro</a>}
         </div>
         <div className="hero-trust" aria-label="Beneficios del servicio">
           <span>Cuentas autorizadas @duocuc.cl y onmicrosoft.com</span>

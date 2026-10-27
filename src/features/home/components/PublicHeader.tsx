@@ -36,7 +36,6 @@ export default function PublicHeader({
         <a href="/catalogo" aria-current={path === '/catalogo' ? 'page' : undefined}>Catálogo</a>
         {showClientNavigation && <a href="/mis-solicitudes">Mis solicitudes</a>}
         {showClientNavigation && <a href="/notificaciones">Notificaciones</a>}
-        {!accountName && <a href="/registro">Registrarse</a>}
         <a href="/#servicios">Servicios</a>
         <a href="/#nosotros">Nosotros</a>
       </nav>
@@ -48,7 +47,10 @@ export default function PublicHeader({
           {onLogout && <button type="button" onClick={onLogout}>Cerrar sesión</button>}
         </div>
       ) : (
-        <LoginButton className="public-login-button--header" onLogin={onLogin} busy={busy} disabled={loginDisabled} />
+        <div className="public-session public-session--anonymous">
+          <LoginButton className="public-login-button--header" onLogin={onLogin} busy={busy} disabled={loginDisabled} />
+          <a className="public-register-button" href="/registro" aria-current={path === '/registro' ? 'page' : undefined}>Registrarse</a>
+        </div>
       )}
     </header>
   );

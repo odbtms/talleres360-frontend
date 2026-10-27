@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { seguimientoApi } from '../../../api/seguimientoApi';
-import ListaAuditoria from '../components/ListaAuditoria';
+import SolicitudesAuditoria from '../components/SolicitudesAuditoria';
 import type { Session } from '../../../types';
 import { EVENTOS, FILTROS_AUDITORIA } from '../constants';
 import { usePagina } from '../hooks/usePagina';
@@ -13,19 +13,19 @@ export default function AuditoriaPage({ session }: { session: Session }) {
   const [filtros, setFiltros] = useState<FiltrosAuditoria>(FILTROS_AUDITORIA);
   const [pagina, setPagina] = useState(0);
   const [errorFiltro, setErrorFiltro] = useState('');
-  const cargar = useCallback((signal: AbortSignal) => seguimientoApi.auditoria(filtros, pagina, signal), [filtros, pagina]);
+  const cargar = useCallback((signal: AbortSignal) => seguimientoApi.solicitudesAuditoria(filtros, pagina, signal), [filtros, pagina]);
   const { datos, cargando, error, actualizar } = usePagina(cargar, 'No pudimos cargar la auditoría. Inténtalo nuevamente.');
   const campo = (nombre: keyof FiltrosAuditoria, valor: string) => setEntrada((actual) => ({ ...actual, [nombre]: valor }));
   if (!session.roles.includes('Admin')) return <p role="alert">Tu cuenta no tiene acceso a auditoría.</p>;
 
   return <main className="seguimiento-page" aria-busy={cargando}>
-    <header className="management-page-heading"><h1>Auditoría</h1><p>Trazabilidad de órdenes y acciones de usuarios. Información de solo lectura.</p></header>
+    <header className="management-page-heading"><h1>Auditoría</h1><p>Abre una solicitud para revisar sus movimientos. Los filtros se aplican a esos movimientos. Información de solo lectura.</p></header>
     <form className="panel seguimiento-filtros" onSubmit={(event) => {
       event.preventDefault();
       if (entrada.desde && entrada.hasta && entrada.desde > entrada.hasta) { setErrorFiltro('La fecha inicial no puede ser posterior a la final.'); return; }
       setErrorFiltro(''); setFiltros({ ...entrada }); setPagina(0); actualizar();
     }}>
-      <label>Número de orden<input type="number" min="1" step="1" max="9007199254740991" value={entrada.orderId} onChange={(event) => campo('orderId', event.target.value)} /></label>
+      <label>Número de solicitud<input type="number" min="1" step="1" max="9007199254740991" value={entrada.orderId} onChange={(event) => campo('orderId', event.target.value)} /></label>
       <label>Usuario (correo completo)<input type="text" maxLength={160} value={entrada.actor} onChange={(event) => campo('actor', event.target.value)} /></label>
       <label>Tipo de evento<select value={entrada.type} onChange={(event) => campo('type', event.target.value)}><option value="">Todos</option>{Object.entries(EVENTOS).map(([valor, texto]) => <option key={valor} value={valor}>{texto}</option>)}</select></label>
       <label>Desde<input type="date" value={entrada.desde} onChange={(event) => campo('desde', event.target.value)} /></label>
@@ -38,7 +38,7 @@ export default function AuditoriaPage({ session }: { session: Session }) {
     {error && <div className="alert" role="alert">{error}<button className="btn ghost" type="button" onClick={actualizar}>Reintentar</button></div>}
     {datos && <section className="panel seguimiento-resultados" aria-label="Historial de eventos">
       {datos.content.length === 0 ? <p className="empty">No hay eventos para los filtros seleccionados.</p>
-        : <ListaAuditoria eventos={datos.content} />}
+        : <SolicitudesAuditoria solicitudes={datos.content} filtros={filtros} />}
       <Paginacion pagina={pagina} totalPaginas={datos.totalPages} total={datos.totalElements} onCambiar={setPagina} />
     </section>}
   </main>;
