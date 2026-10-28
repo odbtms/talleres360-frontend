@@ -70,7 +70,11 @@ export default function CatalogoPage({ session }: { session: Session }) {
       catch { /* No convertir una compra confirmada en error si el almacenamiento está bloqueado. */ }
       setCarrito({}); setSolicitudId(siguiente);
       window.location.assign(`/mis-solicitudes?recibida=${orden.id}`);
-    } catch (e) { setErrorEnvio(`${e instanceof ErrorApi ? e.message : 'No se pudo confirmar la solicitud.'} Revisa Mis solicitudes antes de repetirla; tu carrito se conserva.`); }
+    } catch (e) {
+      const rechazado = e instanceof ErrorApi && ['STOCK_INSUFICIENTE', 'PRODUCTO_NO_DISPONIBLE'].includes(e.codigo || '');
+      setErrorEnvio(`${e instanceof ErrorApi ? e.message : 'No se pudo confirmar la solicitud.'} ${rechazado ? 'La solicitud no se creó y tu carrito se conserva.' : 'Revisa Mis solicitudes antes de repetirla; tu carrito se conserva.'}`);
+      setRevision(valor => valor + 1);
+    }
     finally { setEnviando(false); }
   }
   return <div className="public-page tienda-page">

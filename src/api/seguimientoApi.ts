@@ -17,9 +17,11 @@ export const seguimientoApi = {
   solicitudesAuditoria(filtros: FiltrosAuditoria, page: number, signal?: AbortSignal, size = 10): Promise<Pagina<SolicitudAuditoria>> {
     return request(`/api/audit/solicitudes?${parametrosAuditoria(filtros, page, size)}`, { signal });
   },
-  notificaciones(orderId: string, page: number, signal: AbortSignal): Promise<Pagina<Notificacion>> {
+  notificaciones(orderId: string, page: number, signal: AbortSignal, opciones: { operativo?: boolean; generales?: boolean } = {}): Promise<Pagina<Notificacion>> {
     const query = new URLSearchParams({ page: String(page), size: String(TAMANO_PAGINA) });
     if (orderId) query.set('orderId', orderId);
+    if (opciones.operativo) query.set('ambito', 'operativo');
+    if (opciones.generales) query.set('generales', 'true');
     return request(`/api/notifications?${query}`, { signal });
   },
   auditoria(filtros: FiltrosAuditoria, page: number, signal: AbortSignal): Promise<Pagina<EventoAuditoria>> {

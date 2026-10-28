@@ -1,5 +1,23 @@
 # Talleres360 — Frontend
 
+## Actualización: stock y bandejas personales (28-10-2026)
+
+Cliente, Operador y Admin tienen una bandeja personal en `/notificaciones` y un
+enlace en el encabezado. Admin/Operador también acceden desde el panel. Solo
+Operador dispone de Seguimiento de envíos separado de su bandeja. Se actualizan
+cada cinco segundos conservando los bloques abiertos. Los mensajes sin pedido
+aparecen en Mensajes generales; los avisos automáticos se agrupan por solicitud.
+
+Una cantidad superior al stock muestra un aviso personalizado sin revelar las
+existencias exactas. La solicitud se rechaza antes de guardarse y conserva el
+carrito. No se confunde con una falla de conexión de resultado incierto.
+
+Admin tiene botones Habilitar/Deshabilitar por producto. Utilizan una operación
+que modifica solo el estado: no reenvía precio ni stock antiguo desde la tabla.
+Habilitar con stock cero no inventa disponibilidad; una categoría deshabilitada
+debe habilitarse primero. Los avisos de acción no desaparecen por el sondeo del listado.
+
+
 Aplicación React + TypeScript para gestionar solicitudes, repuestos y ventas de un único taller: Talleres360. Incluye sitio público, historial del cliente y paneles por rol. Microsoft Entra ID proporciona el inicio de sesión; todas las llamadas pasan por API Gateway y el BFF.
 
 La rama de trabajo es `fronted`. Consume el [BFF](https://github.com/EmmanuelhxGG/talleres360-bff) y los cinco microservicios independientes de Emmanuel: [Órdenes](https://github.com/EmmanuelhxGG/ms-ordenes-talleres360), [Catálogo](https://github.com/EmmanuelhxGG/ms-catalogo-talleres360), [Reportes](https://github.com/EmmanuelhxGG/ms-reportes-talleres360), [Notificaciones](https://github.com/EmmanuelhxGG/ms-notificaciones-talleres360) y [Auditoría](https://github.com/EmmanuelhxGG/ms-auditoria-talleres360).
@@ -116,7 +134,7 @@ Incluye **Auditoría**, una línea de tiempo de solo lectura con filtros por ord
 
 ### Seguimiento de notificaciones y auditoría
 
-Cliente dispone de **Notificaciones** en su header y en `/notificaciones`. Solo consulta avisos dirigidos al correo de su identidad autenticada. Operador consulta el seguimiento de correos al cliente; Admin consulta auditoría, no notificaciones. Las páginas muestran carga, ausencia de resultados y errores personalizados con opción de reintentar. Son adaptables al ancho disponible y utilizan variables del tema existente.
+Cliente dispone de **Notificaciones** en su header y en `/notificaciones`. Solo consulta avisos dirigidos al correo de su identidad autenticada. Operador consulta el seguimiento de correos al cliente; Admin consulta auditoría y su bandeja personal de notificaciones. Las páginas muestran carga, ausencia de resultados y errores personalizados con opción de reintentar. Son adaptables al ancho disponible y utilizan variables del tema existente.
 
 Este módulo utiliza los contratos paginados de `ms-notificaciones-talleres360` y `ms-auditoria-talleres360` de Emmanuel y sus rutas en `talleres360-bff`. Consume `GET /api/notifications` y `GET /api/audit` mediante la misma `VITE_API_BASE_URL`; no incorpora URLs privadas ni claves de microservicios al navegador. El BFF y los servicios aplican los permisos y el filtro por propietario; no se confía en filtrar datos ajenos después de descargarlos.
 

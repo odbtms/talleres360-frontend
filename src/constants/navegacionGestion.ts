@@ -6,7 +6,7 @@ export const OPCIONES_GESTION: readonly OpcionGestion[] = [
   { id: 'products', etiqueta: 'Productos', descripcion: 'Catálogo y existencias', roles: ['Admin'] },
   { id: 'registros', etiqueta: 'Registros', descripcion: 'Solicitudes de acceso', roles: ['Admin'] },
   { id: 'reports', etiqueta: 'Hacer reporte', descripcion: 'Ventas por período', roles: ['Admin'] },
-  { id: 'notifications', etiqueta: 'Notificaciones', descripcion: 'Correos automáticos a clientes', roles: ['Operador'] },
+  { id: 'notifications', etiqueta: 'Notificaciones', descripcion: 'Bandeja personal y seguimiento', roles: ['Admin', 'Operador'] },
   { id: 'audit', etiqueta: 'Auditoría', descripcion: 'Trazabilidad de órdenes', roles: ['Admin'] },
 ];
 

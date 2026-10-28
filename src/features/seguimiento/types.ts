@@ -10,7 +10,7 @@ export type EstadoNotificacion = 'PENDIENTE' | 'REINTENTO' | 'ENVIADA' | 'GENERA
 
 export interface Notificacion {
   commandId: string;
-  orderId: number;
+  orderId: number | null;
   tipo: 'CORREO' | 'TICKET_TALLER' | 'COMPROBANTE';
   destinatario: string | null;
   asunto: string;
@@ -51,7 +51,7 @@ export interface SolicitudAuditoria {
 }
 
 export interface SolicitudNotificaciones {
-  orderId: number;
+  orderId: number | null;
   avisos: number;
   ultimaActividad: string;
 }

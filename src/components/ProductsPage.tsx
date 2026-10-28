@@ -14,11 +14,26 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [errorCarga, setErrorCarga] = useState('');
   const [notice, setNotice] = useState('');
+  const [cambiandoEstado, setCambiandoEstado] = useState<number | null>(null);
+
+  async function cambiarEstado(producto: Product) {
+    if (cambiandoEstado !== null || saving) return;
+    setCambiandoEstado(producto.id); setError(''); setNotice('');
+    try {
+      await productsApi.estado(producto.id, !producto.active);
+      setNotice(`Producto #${producto.id} ${producto.active ? 'deshabilitado. Ya no admite nuevas solicitudes.' : 'habilitado. Aparecerá en el catálogo; requiere stock para poder solicitarlo.'}`);
+      if (editingId === producto.id) { setEditingId(null); setForm(emptyProduct); }
+      await reload();
+    } catch {
+      setError(`No se pudo ${producto.active ? 'deshabilitar' : 'habilitar'} el producto. Actualiza el listado y comprueba que su categoría esté habilitada.`);
+    } finally { setCambiandoEstado(null); }
+  }
 
   async function reload() {
-    try { const [p,c]=await Promise.all([productsApi.list(),categoriasApi.list()]);setProducts(p);setCategorias(c);setError(''); }
-    catch { setError('No pudimos cargar los productos. Inténtalo nuevamente.'); }
+    try { const [p,c]=await Promise.all([productsApi.list(),categoriasApi.list()]);setProducts(p);setCategorias(c);setErrorCarga(''); }
+    catch { setErrorCarga('No pudimos cargar los productos. Inténtalo nuevamente.'); }
     finally { setLoading(false); }
   }
   useEffect(() => { void reload(); const timer = window.setInterval(() => void reload(), 5000); return () => window.clearInterval(timer); }, []);
@@ -46,6 +61,7 @@ export default function ProductsPage() {
     <header><h1>Productos y stock</h1><p>Solo el administrador ve las cantidades de inventario y modifica precios y stock. Un producto activo tiene stock bajo al quedar con 5 unidades o menos. Actualización cada 5 segundos.</p>
       </header>
     {error && <div className="alert" role="alert">{error}</div>}
+    {errorCarga && <div className="alert" role="alert">{errorCarga}</div>}
     {notice && <p className="catalog-notice" role="status">{notice}</p>}
     <form className="catalog-form" onSubmit={(event) => void save(event)}>
       <h2>{editingId === null ? 'Nuevo producto' : `Editar producto #${editingId}`}</h2>
@@ -60,14 +76,14 @@ export default function ProductsPage() {
         {editingId !== null && <button className="btn ghost" type="button" onClick={() => { setEditingId(null); setForm(emptyProduct); }}>Cancelar edición</button>}</div>
     </form>
     {loading && <p className="empty">Cargando productos…</p>}
-    {!loading && !error && products.length === 0 && <div className="products-empty"><h2>No hay productos registrados</h2><p>Agrega el primer repuesto con el formulario superior.</p></div>}
+    {!loading && !errorCarga && products.length === 0 && <div className="products-empty"><h2>No hay productos registrados</h2><p>Agrega el primer repuesto con el formulario superior.</p></div>}
     {products.length > 0 && <div className="table-wrap" role="region" aria-label="Listado de productos" tabIndex={0}><table><thead><tr><th>ID</th><th>Producto</th><th>Stock</th><th>Precio</th><th>Estado</th><th>Acción</th></tr></thead>
       <tbody>{products.map((product) => <tr key={product.id}>
         <td>#{product.id}</td><td>{product.name}<small> · {product.categoriaNombre||'General'}</small></td>
         <td>{product.stock}{product.active && product.stock <= 5 && <small className="stock-bajo">Stock bajo</small>}</td>
-        <td>{formatMoney(product.price)}</td><td>{product.available ? 'Disponible' : product.active ? 'Sin stock' : 'Inactivo'}</td>
+        <td>{formatMoney(product.price)}</td><td>{!product.active ? 'Deshabilitado' : product.categoriaActiva === false ? 'Categoría deshabilitada' : product.available ? 'Disponible' : 'Sin stock'}</td>
         <td><div className="actions"><button className="btn ghost small" type="button" onClick={() => edit(product)}>Editar</button>
-          <button className="btn danger-ghost small" type="button" disabled={!product.active} onClick={()=>{if(window.confirm(`¿Dar de baja ${product.name}?`))void productsApi.remove(product.id).then(reload).catch(()=>setError('No se pudo dar de baja el producto.'));}}>Dar de baja</button>
+          <button className={`btn ${product.active ? 'danger-ghost' : 'primary'} small`} type="button" disabled={saving || cambiandoEstado !== null} onClick={() => void cambiarEstado(product)}>{cambiandoEstado === product.id ? 'Actualizando…' : product.active ? 'Deshabilitar' : 'Habilitar'}</button>
         </div></td>
       </tr>)}</tbody></table></div>}
     <CategoriasManager onChange={()=>void reload()} />

@@ -8,7 +8,7 @@ let tokenProvider: TokenProvider = async () => null;
 
 /** Mensajes seguros para la interfaz; no expone endpoints ni respuestas internas. */
 export class ErrorApi extends Error {
-  constructor(mensaje: string, public readonly estado = 0) { super(mensaje); this.name = 'ErrorApi'; }
+  constructor(mensaje: string, public readonly estado = 0, public readonly codigo?: string) { super(mensaje); this.name = 'ErrorApi'; }
 }
 
 export function setTokenProvider(provider: TokenProvider) {
@@ -38,6 +38,16 @@ export async function request<T>(path: string, { method = 'GET', body, signal, a
   if (res.status === 204) return null as T;
   const data = (await res.json().catch(() => null)) as { detail?: string } | T | null;
   if (!res.ok) {
+    // Solo códigos de negocio conocidos; nunca mostrar respuestas internas arbitrarias.
+    const problema = data as { codigo?: unknown; productoId?: unknown } | null;
+    const mensajes: Record<string, string> = {
+      STOCK_INSUFICIENTE: 'No hay stock suficiente para la cantidad solicitada. Reduce la cantidad e inténtalo nuevamente.',
+      PRODUCTO_NO_DISPONIBLE: 'Este producto está deshabilitado o ya no está disponible. Retíralo del carrito.',
+    };
+    if (res.status === 409 && typeof problema?.codigo === 'string' && Object.hasOwn(mensajes, problema.codigo)) {
+      const producto = typeof problema.productoId === 'number' && Number.isSafeInteger(problema.productoId) && problema.productoId > 0 ? `Producto #${problema.productoId}: ` : '';
+      throw new ErrorApi(producto + mensajes[problema.codigo], 409, problema.codigo);
+    }
     if (res.status === 401) throw new ErrorApi('Tu sesión venció o no pudo validarse. Cierra sesión e ingresa nuevamente.', 401);
     if (res.status === 403) throw new ErrorApi('Tu cuenta no tiene permisos para consultar esta información o realizar esta acción.', 403);
     if (res.status === 400) throw new ErrorApi('No se pudo completar la solicitud. Revisa los datos ingresados.', 400);

@@ -7,10 +7,10 @@ import type { SolicitudNotificaciones } from '../types';
 import Paginacion from './Paginacion';
 import '../notificaciones.css';
 
-function HistorialAvisos({ orderId }: { orderId: number }) {
+function HistorialAvisos({ orderId }: { orderId: number | null }) {
   const [pagina, setPagina] = useState(0);
-  const cargar = useCallback((signal: AbortSignal) => seguimientoApi.notificaciones(String(orderId), pagina, signal), [orderId, pagina]);
-  const { datos, cargando, error, actualizar } = usePagina(cargar, 'No pudimos cargar los avisos de esta solicitud.');
+  const cargar = useCallback((signal: AbortSignal) => seguimientoApi.notificaciones(orderId === null ? '' : String(orderId), pagina, signal, { generales: orderId === null }), [orderId, pagina]);
+  const { datos, cargando, error, actualizar } = usePagina(cargar, 'No pudimos cargar los avisos de esta solicitud.', 5000);
   return <div className="notificaciones-historial" aria-busy={cargando}>
     {cargando && <p role="status">Cargando avisos…</p>}
     {error && <div className="alert" role="alert">{error}<button type="button" className="btn ghost" onClick={actualizar}>Reintentar</button></div>}
@@ -35,7 +35,7 @@ function BloqueSolicitud({ solicitud }: { solicitud: SolicitudNotificaciones }) 
   return <li><details className="notificaciones-solicitud" onToggle={event => {
     if (event.target === event.currentTarget) setAbierto(event.currentTarget.open);
   }}>
-    <summary><span className="notificaciones-resumen"><strong>Solicitud #{solicitud.orderId}</strong>
+    <summary><span className="notificaciones-resumen"><strong>{solicitud.orderId === null ? 'Mensajes generales' : `Solicitud #${solicitud.orderId}`}</strong>
       <span className="notificaciones-tipo">{solicitud.avisos} {solicitud.avisos === 1 ? 'aviso' : 'avisos'}</span></span>
       <span className="notificaciones-actividad">Última actividad<time dateTime={solicitud.ultimaActividad}>{formatDate(solicitud.ultimaActividad)}</time></span>
       <span className="notificaciones-enlace" aria-hidden="true">{abierto ? 'Cerrar historial' : 'Ver historial'}</span>
@@ -47,12 +47,12 @@ function BloqueSolicitud({ solicitud }: { solicitud: SolicitudNotificaciones }) 
 export default function SolicitudesNotificaciones({ orden }: { orden: string }) {
   const [pagina, setPagina] = useState(0);
   const cargar = useCallback((signal: AbortSignal) => seguimientoApi.solicitudesNotificaciones(orden, pagina, signal), [orden, pagina]);
-  const { datos, cargando, error, actualizar } = usePagina(cargar, 'No pudimos cargar tus notificaciones. Inténtalo nuevamente.');
+  const { datos, cargando, error, actualizar } = usePagina(cargar, 'No pudimos cargar tus notificaciones. Inténtalo nuevamente.', 5000);
   return <section className="panel seguimiento-resultados" aria-label="Notificaciones por solicitud" aria-busy={cargando}>
     {cargando && <p role="status">Cargando solicitudes…</p>}
     {error && <div className="alert" role="alert">{error}<button className="btn ghost" type="button" onClick={actualizar}>Reintentar</button></div>}
     {datos && <>{datos.content.length ? <ol className="notificaciones-solicitudes">{datos.content.map(solicitud =>
-      <BloqueSolicitud key={solicitud.orderId} solicitud={solicitud} />)}</ol>
+      <BloqueSolicitud key={solicitud.orderId ?? 'generales'} solicitud={solicitud} />)}</ol>
       : <p className="empty">No hay notificaciones para los filtros seleccionados.</p>}
       <Paginacion pagina={pagina} totalPaginas={datos.totalPages} total={datos.totalElements} onCambiar={setPagina} /></>}
   </section>;

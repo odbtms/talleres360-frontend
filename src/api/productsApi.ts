@@ -7,6 +7,7 @@ export const productsApi = {
   cargaInicial: () => request<{ agregados: number }>('/api/products/carga-inicial', { method: 'POST' }),
   create: (input: ProductInput) => request<Product>('/api/products', { method: 'POST', body: input }),
   update: (id: number, input: ProductInput) => request<Product>(`/api/products/${id}`, { method: 'PUT', body: input }),
+  estado: (id: number, active: boolean) => request<Product>(`/api/products/${id}/estado`, { method: 'PUT', body: { active } }),
   remove: (id: number) => request<void>(`/api/products/${id}`, { method: 'DELETE' }),
 };
 
