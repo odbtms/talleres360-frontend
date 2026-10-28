@@ -5,7 +5,7 @@ import { localDate } from '../features/scheduling/utils/validation';
 import { formatMoney } from '../utils/format';
 import type { Order, OrderPayload, ProductoCatalogo, TechnicalPayload } from '../types';
 
-type ProductoSeleccionable = ProductoCatalogo & { stock?: number };
+type ProductoSeleccionable = Omit<ProductoCatalogo, 'maximoSolicitable'> & { stock?: number; maximoSolicitable?: number };
 interface SelectedProduct { product: ProductoSeleccionable; quantity: number; }
 interface Props { order: Order; isAdmin: boolean; onSubmit: (payload: OrderPayload) => Promise<void>; onTechnicalSubmit?: (payload: TechnicalPayload) => Promise<void>; onCancel: () => void; }
 

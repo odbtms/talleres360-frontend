@@ -1,5 +1,15 @@
 # Talleres360 — Frontend
 
+## Cantidad máxima del carrito
+
+El botón Agregar al carrito y el campo Cantidad respetan `maximoSolicitable`
+recibido del catálogo. Intentar superar el límite conserva/ajusta la cantidad al
+máximo y muestra un aviso de stock insuficiente. Si baja la disponibilidad, el
+sondeo de cinco segundos ajusta el carrito y avisa antes de enviar. Un producto
+agotado se conserva señalado como no disponible hasta que el usuario lo retire.
+La comprobación final del servidor sigue activa: el carrito no reserva stock.
+
+
 ## Edición de productos y recarga del inventario
 
 Nuevo producto mantiene su formulario de creación. Editar abre un diálogo
