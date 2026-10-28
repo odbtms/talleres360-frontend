@@ -1,5 +1,13 @@
 # Talleres360 — Frontend
 
+## Stock al aceptar solicitudes
+
+El operador recibe un aviso que identifica el producto cuando no hay stock
+suficiente para aceptar. La solicitud permanece recibida y puede rechazarse
+con motivo. Si el conflicto ocurre durante la reserva concurrente, el sondeo
+de órdenes muestra `errorAceptacion` y vuelve a habilitar las acciones.
+Las caídas temporales conservan el estado de aceptación pendiente y su reintento.
+
 ## Cantidad máxima del carrito
 
 El botón Agregar al carrito y el campo Cantidad respetan `maximoSolicitable`

@@ -39,6 +39,7 @@ export interface OrderPayload {
 export interface Order {
   compraRepuestos: boolean;
   aceptacionPendiente: boolean;
+  errorAceptacion?: string | null;
   motivoRechazo: string | null;
   id: number;
   workshopId: number;

@@ -39,14 +39,16 @@ export async function request<T>(path: string, { method = 'GET', body, signal, a
   const data = (await res.json().catch(() => null)) as { detail?: string } | T | null;
   if (!res.ok) {
     // Solo códigos de negocio conocidos; nunca mostrar respuestas internas arbitrarias.
-    const problema = data as { codigo?: unknown; productoId?: unknown } | null;
+    const problema = data as { codigo?: unknown; productoId?: unknown; nombreProducto?: unknown } | null;
     const mensajes: Record<string, string> = {
       STOCK_INSUFICIENTE: 'No hay stock suficiente para la cantidad solicitada. Reduce la cantidad e inténtalo nuevamente.',
       PRODUCTO_NO_DISPONIBLE: 'Este producto está deshabilitado o ya no está disponible. Retíralo del carrito.',
+      ACEPTACION_SIN_STOCK: 'No hay disponibilidad suficiente para aceptar esta solicitud. Permanece recibida. Puedes rechazarla indicando el motivo o reintentar cuando haya stock.',
     };
     if (res.status === 409 && typeof problema?.codigo === 'string' && Object.hasOwn(mensajes, problema.codigo)) {
       const producto = typeof problema.productoId === 'number' && Number.isSafeInteger(problema.productoId) && problema.productoId > 0 ? `Producto #${problema.productoId}: ` : '';
-      throw new ErrorApi(producto + mensajes[problema.codigo], 409, problema.codigo);
+      const nombre = typeof problema.nombreProducto === 'string' ? problema.nombreProducto.trim().slice(0, 120) : '';
+      throw new ErrorApi((nombre ? `${nombre}: ` : producto) + mensajes[problema.codigo], 409, problema.codigo);
     }
     if (res.status === 401) throw new ErrorApi('Tu sesión venció o no pudo validarse. Cierra sesión e ingresa nuevamente.', 401);
     if (res.status === 403) throw new ErrorApi('Tu cuenta no tiene permisos para consultar esta información o realizar esta acción.', 403);

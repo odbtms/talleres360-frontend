@@ -71,6 +71,7 @@ export default function OrderDetail({
         <dt>Total</dt><dd><strong>{formatMoney(order.total)}</strong></dd>
       </dl>
       {order.aceptacionPendiente && <p role="status">Aceptación pendiente de confirmar stock. Se reintentará automáticamente si Catálogo no está disponible. Puedes rechazar la solicitud indicando el motivo.</p>}
+      {isRequest && order.errorAceptacion && <p role="alert" className="alert error">{order.errorAceptacion}</p>}
       {order.motivoRechazo && <p><strong>Motivo del rechazo:</strong> {order.motivoRechazo}</p>}
 
 
