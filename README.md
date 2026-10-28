@@ -1,5 +1,19 @@
 # Talleres360 — Frontend
 
+## Edición de productos y recarga del inventario
+
+Nuevo producto mantiene su formulario de creación. Editar abre un diálogo
+independiente y carga el producto actual desde el servidor, con Guardar cambios y
+Cancelar propios. Cerrar la edición no borra el borrador de un producto nuevo.
+Habilitar/deshabilitar sigue siendo una acción separada del listado.
+
+La recarga procesa productos y categorías de forma independiente. Un error de
+categorías no descarta un listado de productos recibido correctamente; se conserva
+la última información disponible y se permite reintentar. Los sondeos no se
+superponen y las respuestas canceladas no sustituyen datos actuales. La copia
+local se actualiza al volver a cargar la página después del pull.
+
+
 ## Actualización: stock y bandejas personales (28-10-2026)
 
 Cliente, Operador y Admin tienen una bandeja personal en `/notificaciones` y un
