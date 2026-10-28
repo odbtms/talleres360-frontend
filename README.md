@@ -191,6 +191,14 @@ El proyecto utiliza dos registros en el mismo tenant:
 
 BFF valida tenant, audiencia, scope y roles. Ocultar una opción en React no sustituye esos permisos.
 
+## Notificaciones por solicitud
+
+En Notificaciones, Cliente ve un bloque por solicitud con cantidad de avisos y
+última actividad. Al abrirlo se consulta su historial paginado y cada mensaje
+puede desplegarse por separado. La agrupación se realiza en el backend antes de
+paginar, evitando solicitudes partidas entre páginas. La vista del Operador
+conserva el seguimiento individual de los correos.
+
 ## Ejecutar y compilar
 
 Desde la raíz del frontend:

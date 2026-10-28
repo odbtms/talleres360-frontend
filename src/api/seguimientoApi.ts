@@ -1,6 +1,6 @@
 import { request } from './http';
 import { TAMANO_PAGINA } from '../features/seguimiento/constants';
-import type { EventoAuditoria, FiltrosAuditoria, Notificacion, Pagina, SolicitudAuditoria } from '../features/seguimiento/types';
+import type { EventoAuditoria, FiltrosAuditoria, Notificacion, Pagina, SolicitudAuditoria, SolicitudNotificaciones } from '../features/seguimiento/types';
 
 // Fechas elegidas en la zona local del navegador; hasta es exclusivo e incluye el último día completo.
 function fechaLimite(fecha: string, siguienteDia: boolean): string {
@@ -9,6 +9,11 @@ function fechaLimite(fecha: string, siguienteDia: boolean): string {
 }
 
 export const seguimientoApi = {
+  solicitudesNotificaciones(orderId: string, page: number, signal: AbortSignal): Promise<Pagina<SolicitudNotificaciones>> {
+    const query = new URLSearchParams({ page: String(page), size: '10' });
+    if (orderId) query.set('orderId', orderId);
+    return request(`/api/notifications/solicitudes?${query}`, { signal });
+  },
   solicitudesAuditoria(filtros: FiltrosAuditoria, page: number, signal?: AbortSignal, size = 10): Promise<Pagina<SolicitudAuditoria>> {
     return request(`/api/audit/solicitudes?${parametrosAuditoria(filtros, page, size)}`, { signal });
   },

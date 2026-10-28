@@ -12,7 +12,7 @@
 .seguimiento-page p, .seguimiento-page dd, .seguimiento-page h2 { overflow-wrap: anywhere; }
 .seguimiento-estado { padding: .5rem .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
 .seguimiento-mensaje { white-space: pre-wrap; line-height: 1.6; }
-.seguimiento-page details:not(.auditoria-evento):not(.auditoria-solicitud) > summary { cursor: pointer; padding: .75rem 0; font-weight: 600; }
+.seguimiento-page details:not(.auditoria-evento):not(.auditoria-solicitud):not(.notificaciones-solicitud):not(.notificaciones-detalle) > summary { cursor: pointer; padding: .75rem 0; font-weight: 600; }
 .seguimiento-page summary:focus-visible, .seguimiento-page button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .seguimiento-timeline { list-style: none; margin: 0; padding: 0; }
 .seguimiento-timeline li { border-left: 3px solid var(--accent); padding: 0 0 1.5rem 1.5rem; }

@@ -49,3 +49,9 @@ export interface SolicitudAuditoria {
   eventos: number;
   ultimaActividad: string;
 }
+
+export interface SolicitudNotificaciones {
+  orderId: number;
+  avisos: number;
+  ultimaActividad: string;
+}
