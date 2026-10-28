@@ -24,7 +24,7 @@ export default function HomePage({
         accountName={session?.name}
         onLogout={session?.logout}
         roles={session?.roles}
-        showClientNavigation={Boolean(session?.roles.includes('Cliente') && !session.roles.some(r => r === 'Admin' || r === 'Operador'))}
+        showClientNavigation={Boolean(session)}
       />
       {error && <div className="public-alert" role="alert">{error}</div>}
       {configurationMissing && (

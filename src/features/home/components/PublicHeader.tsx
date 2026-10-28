@@ -35,7 +35,7 @@ export default function PublicHeader({
         <a href="/" aria-current={path === '/' ? 'page' : undefined}>Inicio</a>
         <a href="/catalogo" aria-current={path === '/catalogo' ? 'page' : undefined}>Catálogo</a>
         {showClientNavigation && <a href="/mis-solicitudes">Mis solicitudes</a>}
-        {showClientNavigation && <a href="/notificaciones">Notificaciones</a>}
+        {showClientNavigation && !personal && <a href="/notificaciones">Notificaciones</a>}
         <a href="/#servicios">Servicios</a>
         <a href="/#nosotros">Nosotros</a>
       </nav>

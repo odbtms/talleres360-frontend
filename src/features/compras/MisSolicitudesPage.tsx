@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { appointmentsApi } from '../../api/appointmentsApi';
+import { comprasApi } from '../../api/comprasApi';
 import { ErrorApi } from '../../api/http';
 import type { Order, Session } from '../../types';
 import { formatDate, formatMoney } from '../../utils/format';
@@ -13,6 +14,7 @@ export default function MisSolicitudesPage({ session }: { session: Session }) {
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
   const recibida = new URLSearchParams(window.location.search).get('recibida');
+  const personal = session.roles.some(r => r === 'Admin' || r === 'Operador');
   useEffect(() => {
     let activo = true;
     let ocupado = false;
@@ -21,14 +23,14 @@ export default function MisSolicitudesPage({ session }: { session: Session }) {
       ocupado = true;
       try {
         // Incluye compras y atenciones; el BFF fija la identidad desde el JWT.
-        const datos = (await appointmentsApi.list()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        const datos = (await (personal ? comprasApi.propias() : appointmentsApi.list())).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         if (activo) { setPedidos(datos); setError(''); }
       } catch (e) { if (activo) setError(e instanceof ErrorApi ? e.message : 'No pudimos cargar tus solicitudes. Inténtalo nuevamente.'); }
       finally { ocupado = false; }
     };
     void cargar(); const timer = window.setInterval(() => void cargar(), 5000);
     return () => { activo = false; window.clearInterval(timer); };
-  }, [revision, session.username]);
+  }, [revision, session.username, personal]);
   return <div className="public-page tienda-page"><PublicHeader accountName={session.name} onLogout={session.logout} roles={session.roles} showClientNavigation />
     <main className="tienda"><header className="tienda-heading"><div><p className="section-eyebrow">Tu historial</p><h1>Mis solicitudes</h1><p>Todas tus solicitudes, actuales y anteriores, en un mismo lugar.</p></div><a className="btn primary" href="/catalogo">Ver catálogo</a></header>
       {recibida && /^\d+$/.test(recibida) && <p className="tienda-aviso" role="status">Solicitud #{recibida} enviada. Espera la revisión del operador; todavía no se ha descontado stock ni realizado un cobro.</p>}

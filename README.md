@@ -100,33 +100,33 @@ Para desarrollo también puede consumirse BFF directamente en `http://localhost:
 - Calendario mensual grande: blanco disponible, gris no disponible y amarillo seleccionado. Consulta `GET /api/appointments/availability`; no inventa ocupación. El servicio actual no aplica cupos diarios ni horas de atención.
 - **Mi revisión técnica** (`/mis-revisiones`) utiliza `GET /api/appointments`. El servidor entrega únicamente solicitudes de la cuenta; incluye tipo de revisión, taller, motivo, fechas, diagnóstico y total. La región solo aparece en registros históricos que ya la tenían.
 
-Rutas: `/`, `/registro`, `/catalogo`, `/mis-solicitudes`, `/notificaciones`, `/agendamiento` y `/mis-revisiones`. Catálogo y compras requieren una sesión de Cliente habilitada.
+Rutas: `/`, `/registro`, `/catalogo`, `/mis-solicitudes`, `/notificaciones`, `/agendamiento` y `/mis-revisiones`. Cliente, Operador y Admin pueden usar el carrito y consultar sus compras propias. Las atenciones históricas y su agendamiento conservan acceso de Cliente.
 
 ### Operador
 
-Consulta, acepta o rechaza solicitudes y avanza hasta la entrega. No crea órdenes ni puede eliminarlas. Las compras mantienen el carrito del cliente; las atenciones mecánicas anteriores conservan informe técnico y validaciones. Consulta confirmación de stock antes de entregar.
+Consulta solicitudes y las gestiona: recibida, aceptada, en preparación, lista para retirar y entregada. Puede cancelar con motivo en cualquier etapa anterior a la entrega. No crea órdenes manuales ni las elimina. Como comprador usa el mismo carrito que los demás roles. Las compras mantienen los productos solicitados; las atenciones mecánicas anteriores conservan informe técnico y validaciones.
 
-Incluye **Notificaciones** en el menú izquierdo: tickets del taller, filtro por número de orden, mensaje desplegable, estados, paginación y actualización manual.
+Incluye **Notificaciones** en el menú izquierdo: correos automáticos al cliente, destinatario, estado real de envío, filtro por número de orden, mensaje desplegable y paginación. Cambiar el estado genera el aviso, sin un botón adicional para enviarlo.
 
 ### Admin
 
-Menú izquierdo con **Dashboard, Órdenes, Productos, Registros, Hacer reporte y Auditoría**. Admin crea órdenes administrativas, puede eliminar órdenes y administra productos y categorías con baja lógica. Los productos incluyen SKU, nombre, precio, stock libre, categoría y estado activo. Registros consulta solicitudes locales de acceso; no aprueba usuarios en Entra desde la aplicación.
+Menú izquierdo con **Dashboard, Órdenes, Productos, Registros, Hacer reporte y Auditoría**. Admin consulta órdenes sin crearlas, modificarlas ni eliminarlas. Administra productos y categorías con baja lógica. El formulario nuevo pide nombre, categoría, precio y stock; el ID se asigna al guardar. Un producto activo con cinco unidades o menos aparece como stock bajo, también si se crea inicialmente con esa cantidad. Registros consulta solicitudes locales de acceso; no aprueba usuarios en Entra desde la aplicación.
 
 Incluye **Auditoría**, una línea de tiempo de solo lectura con filtros por orden, usuario, tipo de evento y rango de fechas, paginación y detalle de trazabilidad. El acceso Admin sigue la sección de pantallas del caso; no requiere crear un rol Auditor adicional en Azure.
 
 ### Seguimiento de notificaciones y auditoría
 
-Cliente dispone de **Notificaciones** en su header y en `/notificaciones`. Solo consulta avisos dirigidos al correo de su identidad autenticada. Operador consulta tickets; Admin consulta auditoría, no notificaciones. Las páginas muestran carga, ausencia de resultados y errores personalizados con opción de reintentar. Son adaptables al ancho disponible y utilizan variables del tema existente.
+Cliente dispone de **Notificaciones** en su header y en `/notificaciones`. Solo consulta avisos dirigidos al correo de su identidad autenticada. Operador consulta el seguimiento de correos al cliente; Admin consulta auditoría, no notificaciones. Las páginas muestran carga, ausencia de resultados y errores personalizados con opción de reintentar. Son adaptables al ancho disponible y utilizan variables del tema existente.
 
 Este módulo utiliza los contratos paginados de `ms-notificaciones-talleres360` y `ms-auditoria-talleres360` de Emmanuel y sus rutas en `talleres360-bff`. Consume `GET /api/notifications` y `GET /api/audit` mediante la misma `VITE_API_BASE_URL`; no incorpora URLs privadas ni claves de microservicios al navegador. El BFF y los servicios aplican los permisos y el filtro por propietario; no se confía en filtrar datos ajenos después de descargarlos.
 
 `ENVIADA` indica aceptación del proveedor SMTP, no recepción en la bandeja. `PENDIENTE` no se presenta como correo enviado. El frontend consulta información almacenada y no crea notificaciones ni modifica auditorías.
 
-**Nueva orden permanece en la cabecera únicamente para Admin**. Operador no ve esa acción y el BFF también la rechaza. El menú y la sesión se mantienen al cambiar de sección.
+No hay botón **Nueva orden**: las solicitudes nuevas se originan en el carrito. El BFF rechaza la creación manual y la eliminación de órdenes para todos los roles.
 
 El dashboard muestra órdenes registradas, entregas e ingresos del período, productos activos con stock de cinco o menos y los eventos recientes de auditoría. Hacer reporte consulta cantidad de entregas e ingresos de un período. Los valores proceden de los servicios conectados al BFF; el alias de auditoría del dashboard se dirige al microservicio de Auditoría en la integración de Emmanuel.
 
-El administrador debe justificar sus cambios de estado con al menos diez caracteres. Las fechas de aceptación, entrega y actualización técnica las registra el servidor. Los formularios envían identificadores y cantidades de productos; el precio y el total definitivo los calcula Órdenes con Catálogo.
+Solo Operador cambia estados. Rechazar o cancelar exige un motivo de al menos diez caracteres. Las fechas de aceptación, entrega y actualización técnica las registra el servidor. Los formularios envían identificadores y cantidades de productos; el precio y el total definitivo los calcula Órdenes con Catálogo.
 
 ## Estructura de archivos
 

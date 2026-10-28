@@ -9,7 +9,7 @@ interface Evento {
 }
 
 const ESTADOS: Readonly<Record<string, string>> = {
-  RECIBIDA: 'Recibida', ACEPTADA: 'Aceptada', EN_REPARACION: 'En reparación',
+  RECIBIDA: 'Recibida', ACEPTADA: 'Aceptada', EN_REPARACION: 'En reparación', EN_PREPARACION: 'En preparación',
   LISTA_PARA_ENTREGA: 'Lista para retirar', ENTREGADA: 'Entregada', CANCELADA: 'Rechazada',
 };
 

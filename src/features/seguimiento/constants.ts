@@ -4,7 +4,7 @@ export const TAMANO_PAGINA = 20;
 export const FILTROS_AUDITORIA: FiltrosAuditoria = { orderId: '', actor: '', type: '', desde: '', hasta: '' };
 export const EVENTOS: Readonly<Record<string, string>> = {
   CREADA: 'Orden creada', ACTUALIZADA: 'Orden actualizada', ACEPTADA: 'Solicitud aceptada',
-  EN_REPARACION: 'En reparación', LISTA_PARA_ENTREGA: 'Lista para retirar', ENTREGADA: 'Orden entregada',
+  EN_REPARACION: 'En reparación', EN_PREPARACION: 'En preparación', LISTA_PARA_ENTREGA: 'Lista para retirar', ENTREGADA: 'Orden entregada',
   CANCELADA: 'Solicitud rechazada', ELIMINADA: 'Orden eliminada', INFORME_ACTUALIZADO: 'Informe actualizado',
 };
 export const ESTADOS_NOTIFICACION: Record<EstadoNotificacion, string> = {

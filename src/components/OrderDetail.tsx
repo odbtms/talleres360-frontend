@@ -28,7 +28,7 @@ export default function OrderDetail({
   onDelete,
 }: OrderDetailProps) {
   const nextStatuses = canWrite ? (order.compraRepuestos
-    ? ({ RECIBIDA: order.aceptacionPendiente ? ['CANCELADA'] : ['ACEPTADA','CANCELADA'], ACEPTADA:['LISTA_PARA_ENTREGA','CANCELADA'], LISTA_PARA_ENTREGA:['ENTREGADA','CANCELADA'],ENTREGADA:[],CANCELADA:[],EN_REPARACION:[] } as Record<OrderStatus,OrderStatus[]>)[order.status]
+    ? ({ RECIBIDA: order.aceptacionPendiente ? ['CANCELADA'] : ['ACEPTADA','CANCELADA'], ACEPTADA:['EN_PREPARACION','CANCELADA'], EN_PREPARACION:['LISTA_PARA_ENTREGA','CANCELADA'], LISTA_PARA_ENTREGA:['ENTREGADA','CANCELADA'],ENTREGADA:[],CANCELADA:[],EN_REPARACION:['LISTA_PARA_ENTREGA','CANCELADA'] } as Record<OrderStatus,OrderStatus[]>)[order.status]
     : NEXT_STATUS[order.status] ?? []) : [];
   // ms-orders solo permite editar (PUT /api/orders/{id}) en RECIBIDA
   const canEdit = !order.compraRepuestos && canWrite && ['RECIBIDA', 'ACEPTADA', 'EN_REPARACION', 'LISTA_PARA_ENTREGA'].includes(order.status);
@@ -37,7 +37,7 @@ export default function OrderDetail({
   const [pending, setPending] = useState(true);
   const [stockError, setStockError] = useState('');
   useEffect(() => {
-    if (!['ACEPTADA', 'EN_REPARACION', 'LISTA_PARA_ENTREGA'].includes(order.status)) return;
+    if (!['ACEPTADA', 'EN_PREPARACION', 'EN_REPARACION', 'LISTA_PARA_ENTREGA'].includes(order.status)) return;
     let active = true;
     const load = () => ordersApi.stock(order.id).then((stock) => { if (active) { setPending(stock.pending); setStockError(''); } }).catch(() => { if (active) { setPending(true); setStockError('No se pudo comprobar la asignación de repuestos. Se reintentará automáticamente.'); } });
     void load(); const timer = window.setInterval(() => { void load(); }, 5000);
@@ -125,7 +125,7 @@ export default function OrderDetail({
                 disabled={busy || isAdmin && reason.trim().length < 10 || order.compraRepuestos && status === 'CANCELADA' && reason.trim().length < 10 || status === 'ENTREGADA' && pending || !order.compraRepuestos && status === 'LISTA_PARA_ENTREGA' && (!order.diagnosis || !order.workPerformed)}
                 onClick={() => { void change(status); }}
               >
-                {isRequest ? (status === 'ACEPTADA' ? 'Aceptar solicitud' : 'Rechazar solicitud') : order.compraRepuestos ? status === 'LISTA_PARA_ENTREGA' ? 'Lista para retirar' : status === 'CANCELADA' ? 'Rechazar solicitud' : 'Confirmar entrega' : STATUS_LABELS[status]}
+                {isRequest ? (status === 'ACEPTADA' ? 'Aceptar solicitud' : 'Rechazar solicitud') : order.compraRepuestos ? status === 'EN_PREPARACION' ? 'Comenzar preparación' : status === 'LISTA_PARA_ENTREGA' ? 'Lista para retirar' : status === 'CANCELADA' ? 'Cancelar solicitud' : 'Confirmar entrega' : STATUS_LABELS[status]}
               </button>
             ))}
           </div>

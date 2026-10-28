@@ -585,6 +585,7 @@ td { padding: 10px; border-bottom: 1px solid var(--border); }
 .catalog-check { display: flex; flex-direction: row; align-items: center; gap: 8px; }
 .catalog-check input { width: auto; }
 .catalog-notice { color: #047857; font-weight: 600; }
+.stock-bajo { display: block; margin-top: .25rem; color: #92400e; font-weight: 700; white-space: nowrap; }
 .dashboard { display: grid; gap: 24px; padding: 24px; }
 .dashboard-heading h1 { margin: 0; font-size: 30px; }
 .dashboard-heading p { color: var(--muted); }

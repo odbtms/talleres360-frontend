@@ -52,7 +52,7 @@ export default function AdminDashboard({ onOpenOrders, onOpenProducts }: Props) 
         <button type="button" onClick={onOpenOrders}><span>Órdenes registradas</span><strong>{orderCount}</strong><small>Ver órdenes</small></button>
         <button type="button" onClick={onOpenOrders}><span>Entregas del período</span><strong>{sales?.deliveredOrders ?? 0}</strong><small>Consultar actividad</small></button>
         <div><span>Ventas del período</span><strong>{formatMoney(sales?.revenue ?? 0)}</strong><small>Solo órdenes entregadas</small></div>
-        <button type="button" onClick={onOpenProducts}><span>Repuestos con stock bajo</span><strong>{lowStock.length}</strong><small>Ver catálogo</small></button>
+        <button type="button" onClick={onOpenProducts}><span>Repuestos con stock bajo</span><strong>{lowStock.length}</strong><small>Activos con 5 unidades o menos · Ver catálogo</small></button>
       </section>
       <section className="panel"><header className="auditoria-encabezado"><div><h2>Auditoría reciente</h2><p>Las 5 solicitudes con actividad más reciente. Abre una para revisar su historial.</p></div><a className="btn ghost" href="/dashboard/audit">Ver historial completo</a></header>
         {audit.length === 0 ? <p className="muted">Aún no hay eventos registrados.</p> :

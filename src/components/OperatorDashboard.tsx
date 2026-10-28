@@ -23,8 +23,8 @@ export default function OperatorDashboard({ onOpenOrders, onOpenNotifications }:
     {error && <p className="alert" role="alert">{error}</p>}
     {!ordenes && !error && <p role="status">Cargando solicitudes…</p>}
     {ordenes && <section className="dashboard-cards" aria-label="Solicitudes por estado">
-      {([['RECIBIDA', 'Por revisar'], ['ACEPTADA', 'En preparación'], ['LISTA_PARA_ENTREGA', 'Listas para retirar']] as const).map(([estado, titulo]) => <button type="button" key={estado} onClick={onOpenOrders}><span>{titulo}</span><strong>{ordenes.filter(o => o.status === estado).length}</strong><small>Ver solicitudes</small></button>)}
-      <button type="button" onClick={onOpenNotifications}><span>Notificaciones</span><strong>Tickets</strong><small>Consultar actividad del taller</small></button>
+      {([['RECIBIDA', 'Por revisar'], ['ACEPTADA', 'Aceptadas'], ['EN_PREPARACION', 'En preparación'], ['LISTA_PARA_ENTREGA', 'Listas para retirar']] as const).map(([estado, titulo]) => <button type="button" key={estado} onClick={onOpenOrders}><span>{titulo}</span><strong>{ordenes.filter(o => o.status === estado).length}</strong><small>Ver solicitudes</small></button>)}
+      <button type="button" onClick={onOpenNotifications}><span>Notificaciones</span><strong>Correos</strong><small>Consultar avisos automáticos a clientes</small></button>
     </section>}
   </main>;
 }

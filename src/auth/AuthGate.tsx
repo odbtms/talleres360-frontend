@@ -102,6 +102,7 @@ function MsalAuthGate({ children }: AuthGateProps) {
     session.username = correo;
   }
   const gestion = window.location.pathname === '/dashboard' || window.location.pathname.startsWith('/dashboard/');
+  if (correo) session.username = correo;
   if (gestion && roles.some((role) => role === 'Admin' || role === 'Operador')) return children(session);
   return <ClientSite session={session} />;
 }

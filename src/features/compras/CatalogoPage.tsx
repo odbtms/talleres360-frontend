@@ -9,7 +9,7 @@ import './compras.css';
 
 type Carrito = Record<string, number>;
 export default function CatalogoPage({ session }: { session: Session }) {
-  const cliente = session.roles.includes('Cliente') && !session.roles.some(r => r === 'Admin' || r === 'Operador');
+  const cliente = session.roles.some(r => ['Cliente', 'Operador', 'Admin'].includes(r));
   const clave = `talleres360-carrito:${session.username.toLowerCase()}`;
   const [carrito, setCarrito] = useState<Carrito>(() => {
     try {
