@@ -7,6 +7,13 @@ import type { SolicitudNotificaciones } from '../types';
 import Paginacion from './Paginacion';
 import '../notificaciones.css';
 
+function descargarTexto(id: number | null, mensaje: string) {
+  const url = URL.createObjectURL(new Blob([mensaje], { type: 'text/plain;charset=utf-8' }));
+  const enlace = document.createElement('a');
+  enlace.href = url; enlace.download = `comprobante-${id ?? 'entrega'}.txt`;
+  enlace.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function HistorialAvisos({ orderId }: { orderId: number | null }) {
   const [pagina, setPagina] = useState(0);
   const cargar = useCallback((signal: AbortSignal) => seguimientoApi.notificaciones(orderId === null ? '' : String(orderId), pagina, signal, { generales: orderId === null }), [orderId, pagina]);
@@ -18,11 +25,12 @@ function HistorialAvisos({ orderId }: { orderId: number | null }) {
       <li key={aviso.commandId}><details className="notificaciones-detalle">
         <summary><span className="notificaciones-resumen"><strong>{aviso.asunto}</strong>
           <span className="notificaciones-tipo">{aviso.tipo === 'CORREO' ? 'Correo' : 'Comprobante'}</span></span>
-          <span className="seguimiento-estado">{ESTADOS_NOTIFICACION[aviso.estado]}</span>
+          <span className="seguimiento-estado">{aviso.tipo === 'COMPROBANTE' && aviso.estado === 'GENERADA' ? 'Comprobante generado' : ESTADOS_NOTIFICACION[aviso.estado]}</span>
           <time dateTime={aviso.occurredAt}>{formatDate(aviso.occurredAt)}</time>
           <span className="notificaciones-enlace" aria-hidden="true">Ver mensaje</span>
         </summary>
         <div className="notificaciones-contenido"><p className="seguimiento-mensaje">{aviso.mensaje}</p>
+          {aviso.tipo === 'COMPROBANTE' && aviso.estado === 'GENERADA' && <button type="button" className="btn ghost" onClick={() => descargarTexto(aviso.orderId, aviso.mensaje)}>Descargar comprobante .txt</button>}
           {aviso.estado === 'FALLIDA' && <p role="status">No fue posible enviar este aviso. Contacta al taller si necesitas información.</p>}
         </div>
       </details></li>)}</ol> : <p>No hay avisos para esta solicitud.</p>}

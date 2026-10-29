@@ -1,5 +1,11 @@
 # Talleres360 — Frontend
 
+## Comprobante en texto
+
+Notificaciones muestra el comprobante cuando el operador confirma la entrega.
+Dentro de la solicitud aparece el detalle y el botón **Descargar comprobante .txt**.
+No utiliza PDF ni añade otro aviso por correo.
+
 ## Stock al aceptar solicitudes
 
 El operador recibe un aviso que identifica el producto cuando no hay stock
