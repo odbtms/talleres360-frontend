@@ -138,7 +138,9 @@ Frontend local :5173 → API Gateway HTTPS (JWT) → BFF :8080 (JWT + rol)
                                                 └── Auditoría :8085 (X-Internal-Key)
 ```
 
-En AWS, cada microservicio tiene su EC2 y PostgreSQL; BFF ocupa otra EC2. El frontend permanece local.
+En AWS, cada microservicio tiene su EC2. Los cinco comparten PostgreSQL `talleres360`,
+alojada en la EC2 de Órdenes, con tablas y columnas de aplicación en español.
+El BFF ocupa otra EC2 y el frontend permanece local; ninguno accede directamente a SQL.
 
 Órdenes usa un outbox persistente: stock, ventas y auditoría se comunican por HTTP
 interno; correos y tickets se publican en RabbitMQ y los procesa Notificaciones.
