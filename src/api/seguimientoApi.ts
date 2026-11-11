@@ -9,18 +9,20 @@ function fechaLimite(fecha: string, siguienteDia: boolean): string {
 }
 
 export const seguimientoApi = {
-  solicitudesNotificaciones(orderId: string, page: number, signal: AbortSignal): Promise<Pagina<SolicitudNotificaciones>> {
+  solicitudesNotificaciones(orderId: string, page: number, signal: AbortSignal, taller = false): Promise<Pagina<SolicitudNotificaciones>> {
     const query = new URLSearchParams({ page: String(page), size: '10' });
+    if (taller) query.set('ambito', 'taller');
     if (orderId) query.set('orderId', orderId);
     return request(`/api/notifications/solicitudes?${query}`, { signal });
   },
   solicitudesAuditoria(filtros: FiltrosAuditoria, page: number, signal?: AbortSignal, size = 10): Promise<Pagina<SolicitudAuditoria>> {
     return request(`/api/audit/solicitudes?${parametrosAuditoria(filtros, page, size)}`, { signal });
   },
-  notificaciones(orderId: string, page: number, signal: AbortSignal, opciones: { operativo?: boolean; generales?: boolean } = {}): Promise<Pagina<Notificacion>> {
+  notificaciones(orderId: string, page: number, signal: AbortSignal, opciones: { operativo?: boolean; generales?: boolean; taller?: boolean } = {}): Promise<Pagina<Notificacion>> {
     const query = new URLSearchParams({ page: String(page), size: String(TAMANO_PAGINA) });
     if (orderId) query.set('orderId', orderId);
-    if (opciones.operativo) query.set('ambito', 'operativo');
+    if (opciones.taller) query.set('ambito', 'taller');
+    else if (opciones.operativo) query.set('ambito', 'operativo');
     if (opciones.generales) query.set('generales', 'true');
     return request(`/api/notifications?${query}`, { signal });
   },

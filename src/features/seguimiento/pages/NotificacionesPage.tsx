@@ -33,13 +33,15 @@ export default function NotificacionesPage({ session }: { session: Session }) {
   const [entrada, setEntrada] = useState('');
   const [orden, setOrden] = useState('');
   const [revision, setRevision] = useState(0);
-  const [operativo, setOperativo] = useState(false);
+  const gestion = session.roles.some(rol => rol === 'Admin' || rol === 'Operador');
+  const [bandeja, setBandeja] = useState(gestion ? 'taller' : 'personal');
+  const operativo = bandeja === 'operativo';
   const operador = session.roles.includes('Operador');
   if (!session.roles.some(rol => ['Cliente', 'Operador', 'Admin'].includes(rol))) return <p role="alert">Tu cuenta no tiene acceso a notificaciones.</p>;
   return <main className="seguimiento-page">
     <header className="management-page-heading"><h1>Notificaciones</h1>
-      <p>{operativo ? 'Seguimiento operativo de los correos enviados a clientes.' : 'Consulta los avisos dirigidos a tu cuenta. Los mensajes sin pedido están en Mensajes generales.'}</p>
-      {operador && <div className="actions"><button type="button" className={`btn ${!operativo ? 'primary' : 'ghost'}`} aria-pressed={!operativo} onClick={() => setOperativo(false)}>Mis notificaciones</button><button type="button" className={`btn ${operativo ? 'primary' : 'ghost'}`} aria-pressed={operativo} onClick={() => setOperativo(true)}>Seguimiento de envíos</button></div>}
+      <p>{operativo ? 'Seguimiento operativo de los correos enviados a clientes.' : bandeja === 'taller' ? 'Solicitudes y avisos internos del taller.' : 'Consulta los avisos dirigidos a tu cuenta. Los mensajes sin pedido están en Mensajes generales.'}</p>
+      {gestion && <div className="actions"><button type="button" className={`btn ${bandeja === 'taller' ? 'primary' : 'ghost'}`} aria-pressed={bandeja === 'taller'} onClick={() => setBandeja('taller')}>Avisos del taller</button><button type="button" className={`btn ${bandeja === 'personal' ? 'primary' : 'ghost'}`} aria-pressed={bandeja === 'personal'} onClick={() => setBandeja('personal')}>Mis notificaciones</button>{operador && <button type="button" className={`btn ${operativo ? 'primary' : 'ghost'}`} aria-pressed={operativo} onClick={() => setBandeja('operativo')}>Seguimiento de envíos</button>}</div>}
     </header>
     <form className="panel seguimiento-filtros" onSubmit={event => {
       event.preventDefault(); setOrden(entrada); setRevision(valor => valor + 1);
@@ -52,6 +54,6 @@ export default function NotificacionesPage({ session }: { session: Session }) {
       }}>Actualizar / limpiar</button>
     </form>
     {operativo ? <AvisosOperador key={`${orden}-${revision}`} orden={orden} />
-      : <SolicitudesNotificaciones key={`${orden}-${revision}`} orden={orden} />}
+      : <SolicitudesNotificaciones key={`${bandeja}-${orden}-${revision}`} orden={orden} taller={bandeja === 'taller'} />}
   </main>;
 }

@@ -14,9 +14,9 @@ function descargarTexto(id: number | null, mensaje: string) {
   enlace.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function HistorialAvisos({ orderId }: { orderId: number | null }) {
+function HistorialAvisos({ orderId, taller }: { orderId: number | null; taller: boolean }) {
   const [pagina, setPagina] = useState(0);
-  const cargar = useCallback((signal: AbortSignal) => seguimientoApi.notificaciones(orderId === null ? '' : String(orderId), pagina, signal, { generales: orderId === null }), [orderId, pagina]);
+  const cargar = useCallback((signal: AbortSignal) => seguimientoApi.notificaciones(orderId === null ? '' : String(orderId), pagina, signal, { generales: orderId === null, taller }), [orderId, pagina, taller]);
   const { datos, cargando, error, actualizar } = usePagina(cargar, 'No pudimos cargar los avisos de esta solicitud.', 5000);
   return <div className="notificaciones-historial" aria-busy={cargando}>
     {cargando && <p role="status">Cargando avisos…</p>}
@@ -24,7 +24,7 @@ function HistorialAvisos({ orderId }: { orderId: number | null }) {
     {datos && <>{datos.content.length ? <ol className="notificaciones-avisos">{datos.content.map(aviso =>
       <li key={aviso.commandId}><details className="notificaciones-detalle">
         <summary><span className="notificaciones-resumen"><strong>{aviso.asunto}</strong>
-          <span className="notificaciones-tipo">{aviso.tipo === 'CORREO' ? 'Correo' : 'Comprobante'}</span></span>
+          <span className="notificaciones-tipo">{aviso.tipo === 'CORREO' ? 'Correo' : aviso.tipo === 'COMPROBANTE' ? 'Comprobante' : 'Ticket de taller'}</span></span>
           <span className="seguimiento-estado">{aviso.tipo === 'COMPROBANTE' && aviso.estado === 'GENERADA' ? 'Comprobante generado' : ESTADOS_NOTIFICACION[aviso.estado]}</span>
           <time dateTime={aviso.occurredAt}>{formatDate(aviso.occurredAt)}</time>
           <span className="notificaciones-enlace" aria-hidden="true">Ver mensaje</span>
@@ -38,7 +38,7 @@ function HistorialAvisos({ orderId }: { orderId: number | null }) {
   </div>;
 }
 
-function BloqueSolicitud({ solicitud }: { solicitud: SolicitudNotificaciones }) {
+function BloqueSolicitud({ solicitud, taller }: { solicitud: SolicitudNotificaciones; taller: boolean }) {
   const [abierto, setAbierto] = useState(false);
   return <li><details className="notificaciones-solicitud" onToggle={event => {
     if (event.target === event.currentTarget) setAbierto(event.currentTarget.open);
@@ -48,19 +48,19 @@ function BloqueSolicitud({ solicitud }: { solicitud: SolicitudNotificaciones }) 
       <span className="notificaciones-actividad">Última actividad<time dateTime={solicitud.ultimaActividad}>{formatDate(solicitud.ultimaActividad)}</time></span>
       <span className="notificaciones-enlace" aria-hidden="true">{abierto ? 'Cerrar historial' : 'Ver historial'}</span>
     </summary>
-    {abierto && <HistorialAvisos orderId={solicitud.orderId} />}
+    {abierto && <HistorialAvisos orderId={solicitud.orderId} taller={taller} />}
   </details></li>;
 }
 
-export default function SolicitudesNotificaciones({ orden }: { orden: string }) {
+export default function SolicitudesNotificaciones({ orden, taller = false }: { orden: string; taller?: boolean }) {
   const [pagina, setPagina] = useState(0);
-  const cargar = useCallback((signal: AbortSignal) => seguimientoApi.solicitudesNotificaciones(orden, pagina, signal), [orden, pagina]);
+  const cargar = useCallback((signal: AbortSignal) => seguimientoApi.solicitudesNotificaciones(orden, pagina, signal, taller), [orden, pagina, taller]);
   const { datos, cargando, error, actualizar } = usePagina(cargar, 'No pudimos cargar tus notificaciones. Inténtalo nuevamente.', 5000);
   return <section className="panel seguimiento-resultados" aria-label="Notificaciones por solicitud" aria-busy={cargando}>
     {cargando && <p role="status">Cargando solicitudes…</p>}
     {error && <div className="alert" role="alert">{error}<button className="btn ghost" type="button" onClick={actualizar}>Reintentar</button></div>}
     {datos && <>{datos.content.length ? <ol className="notificaciones-solicitudes">{datos.content.map(solicitud =>
-      <BloqueSolicitud key={solicitud.orderId ?? 'generales'} solicitud={solicitud} />)}</ol>
+      <BloqueSolicitud key={solicitud.orderId ?? 'generales'} solicitud={solicitud} taller={taller} />)}</ol>
       : <p className="empty">No hay notificaciones para los filtros seleccionados.</p>}
       <Paginacion pagina={pagina} totalPaginas={datos.totalPages} total={datos.totalElements} onCambiar={setPagina} /></>}
   </section>;
