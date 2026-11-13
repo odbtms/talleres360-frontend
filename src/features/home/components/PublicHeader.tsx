@@ -31,7 +31,7 @@ export default function PublicHeader({
       </a>
 
       <button className="public-menu-toggle" type="button" aria-controls="public-navigation" aria-expanded={abierto} onClick={() => setAbierto(valor => !valor)}>{abierto ? 'Cerrar menú' : 'Menú'}</button>
-      <nav id="public-navigation" className={`public-navigation${abierto ? ' is-open' : ''}`} aria-label="Navegación principal">
+      <nav onClick={(evento) => { if ((evento.target as HTMLElement).closest('a')) setAbierto(false); }} id="public-navigation" className={`public-navigation${abierto ? ' is-open' : ''}`} aria-label="Navegación principal">
         <a href="/" aria-current={path === '/' ? 'page' : undefined}>Inicio</a>
         <a href="/catalogo" aria-current={path === '/catalogo' ? 'page' : undefined}>Catálogo</a>
         {showClientNavigation && <a href="/mis-solicitudes">Mis solicitudes</a>}

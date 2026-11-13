@@ -24,17 +24,32 @@
   .public-header .public-account { max-width: 10rem; }
 }
 @media (max-width: 600px) {
-  .public-page .public-header { gap: .5rem; padding: .5rem .75rem; }
+  .public-page .public-header {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: .5rem;
+    padding: .5rem .75rem;
+  }
   .public-header .public-brand-logo { width: 58px; height: 58px; }
-  .public-header .public-session { gap: .4rem; }
-  .public-header .public-account { display: none; }
-  .public-header .public-session button, .public-dashboard-link { padding: .45rem .6rem; font-size: .85rem; }
-  .public-register-button { padding: .45rem .6rem; font-size: .85rem; }
-  .public-header .public-navigation { flex-direction: column; align-items: stretch; }
-}
-@media (max-width: 420px) {
-  .public-page .public-header:has(.public-session--anonymous) { grid-template-columns: auto 1fr; }
-  .public-header:has(.public-session--anonymous) .public-menu-toggle { justify-self: end; }
-  .public-header .public-session--anonymous { grid-column: 1 / -1; justify-content: flex-end; }
-  .public-header:has(.public-session--anonymous) .public-navigation { grid-row: 3; }
+  .public-header .public-menu-toggle { justify-self: end; }
+  .public-header .public-navigation { grid-row: 2; flex-direction: column; align-items: stretch; }
+  .public-header .public-session {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: stretch;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  .public-header .public-account {
+    order: -1;
+    flex-basis: 100%;
+    max-width: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .public-header .public-menu-toggle,
+  .public-header .public-navigation a,
+  .public-header .public-session button,
+  .public-header .public-dashboard-link,
+  .public-header .public-register-button { min-height: 44px; }
 }

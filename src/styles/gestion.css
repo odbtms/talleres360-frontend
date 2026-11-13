@@ -147,13 +147,6 @@
 .management-shell td { overflow-wrap: anywhere; vertical-align: top; }
 .management-shell th { white-space: nowrap; overflow-wrap: normal; }
 .management-shell .num { white-space: nowrap; }
-.management-shell .table-wrap--orders table { min-width: 60rem; table-layout: fixed; }
-.management-shell .table-wrap--orders th:nth-child(1) { width: 4rem; }
-.management-shell .table-wrap--orders th:nth-child(2) { width: 7rem; }
-.management-shell .table-wrap--orders th:nth-child(4) { width: 5rem; }
-.management-shell .table-wrap--orders th:nth-child(5) { width: 11rem; }
-.management-shell .table-wrap--orders th:nth-child(6) { width: 8rem; }
-.management-shell .table-wrap--orders th:nth-child(7) { width: 13rem; }
 .management-shell .table-wrap--audit table { min-width: 64rem; table-layout: fixed; }
 .management-shell .table-wrap--audit th:nth-child(1) { width: 12rem; }
 .management-shell .table-wrap--audit th:nth-child(2) { width: 6rem; }
@@ -231,4 +224,59 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .management-navigation__item { transition: none; }
+}
+
+.management-shell .side:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (max-width: 900px), (max-height: 34rem) {
+  .management-topbar { position: static; }
+}
+@media (max-width: 900px) {
+  .management-shell { container: gestion / inline-size; }
+}
+
+/* El ancho del panel determina cuándo convertir las filas en tarjetas. */
+@container gestion (max-width: 55rem) {
+  .management-shell .table-wrap--responsive { overflow: visible; }
+  .management-shell .table-wrap--responsive table,
+  .management-shell .table-wrap--responsive tbody { display: block; width: 100%; min-width: 0; }
+  .management-shell .table-wrap--responsive thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .management-shell .table-wrap--responsive tbody { display: grid; gap: .75rem; }
+  .management-shell .table-wrap--responsive tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .8rem;
+    padding: .9rem;
+    border: 1px solid var(--border);
+    border-radius: .75rem;
+  }
+  .management-shell .table-wrap--responsive td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    text-align: start;
+    white-space: normal;
+  }
+  .management-shell .table-wrap--responsive td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: .25rem;
+    color: var(--muted);
+    font-size: .8rem;
+    font-weight: 600;
+  }
+  .management-shell .table-wrap--responsive td:last-child { grid-column: 1 / -1; }
+  .management-shell .table-wrap--responsive .actions { justify-content: flex-start; flex-wrap: wrap; }
+}
+
+@media (max-width: 560px) {
+  .management-topbar .topbar-actions { justify-content: flex-start; gap: .5rem; }
+  .management-shell input, .management-shell select, .management-shell textarea { font-size: 1rem; }
 }

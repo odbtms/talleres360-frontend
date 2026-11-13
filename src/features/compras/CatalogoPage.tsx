@@ -102,7 +102,7 @@ export default function CatalogoPage({ session }: { session: Session }) {
   return <div className="public-page tienda-page">
     <PublicHeader accountName={session.name} onLogout={session.logout} roles={session.roles} showClientNavigation={cliente} />
     <main className="tienda">
-      <header className="tienda-heading"><div><p className="section-eyebrow">Repuestos Talleres360</p><h1>Catálogo de repuestos</h1><p>{cliente ? 'Elige tus productos y envía una solicitud. El operador la revisará; no se cobra en línea.' : 'Consulta los productos y su precio de venta. La administración del inventario está en el dashboard del administrador.'}</p></div>{cliente && <a className="btn primary" href="/mis-solicitudes">Mis solicitudes</a>}</header>
+      <header className="tienda-heading"><div><p className="section-eyebrow">Repuestos Talleres360</p><h1>Catálogo de repuestos</h1><p>{cliente ? 'Elige tus productos y envía una solicitud. El operador la revisará; no se cobra en línea.' : 'Consulta los productos y su precio de venta. La administración del inventario está en el dashboard del administrador.'}</p></div>{cliente && <div className="tienda-acciones"><a className="btn ghost carrito-acceso" href="#carrito">Ver carrito ({seleccion.length})</a><a className="btn primary" href="/mis-solicitudes">Mis solicitudes</a></div>}</header>
       {error && <div className="public-alert" role="alert"><span>{error}</span><button className="btn ghost" onClick={() => setRevision(v => v + 1)}>Reintentar</button></div>}
       {!productos && !error && <p role="status">Cargando catálogo…</p>}
       <div className={cliente ? 'tienda-layout' : 'tienda-catalogo-completo'}>
@@ -112,7 +112,7 @@ export default function CatalogoPage({ session }: { session: Session }) {
           </article>)}</div>
           {productos && !error && filtrados.length === 0 && <section className="panel estado-vacio"><h2>{productos.length ? 'Sin coincidencias' : 'Aún no hay repuestos publicados'}</h2><p>{productos.length ? 'Prueba otro nombre o categoría.' : 'El administrador debe agregar productos al catálogo.'}</p></section>}
         </section>
-        {cliente && <aside className="panel carrito"><h2>Tu carrito</h2><p>El stock se descuenta solo cuando el operador acepta tu solicitud.</p>
+        {cliente && <aside className="panel carrito" id="carrito" tabIndex={-1} aria-label="Tu carrito"><h2>Tu carrito</h2><p>El stock se descuenta solo cuando el operador acepta tu solicitud.</p>
           {!seleccion.length ? <p>Tu carrito está vacío.</p> : seleccion.map(i => <div className="carrito-item" key={i.id}><strong>{i.producto?.name || 'Producto no disponible'}</strong><span>{formatMoney((i.producto?.price || 0) * i.cantidad)}</span><label>Cantidad<input type="number" min={1} max={maximoSolicitable(i.producto) || 1} step={1} value={i.cantidad} disabled={enviando || maximoSolicitable(i.producto) === 0} onChange={e => cambiarCantidad(Number(i.id), Math.max(1, Number(e.target.value) || 1))} /></label><button className="btn ghost small" disabled={enviando} onClick={() => cambiarCantidad(Number(i.id), 0)}>Quitar</button></div>)}
           <p className="carrito-total">Total estimado <strong>{formatMoney(total)}</strong></p>
           {inconsistencias && productos && <p role="alert">Un producto ya no está disponible. Retíralo del carrito para continuar.</p>}

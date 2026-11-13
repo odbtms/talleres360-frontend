@@ -41,6 +41,27 @@ export default function App({ session }: AppProps) {
   const [view, setView] = useState<VistaGestion>(() => vistaInicial(session));
   const [menuAbierto, setMenuAbierto] = useState(false);
   const botonMenu = useRef<HTMLButtonElement>(null);
+  const panelOrden = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (menuAbierto) document.querySelector<HTMLButtonElement>('#menu-gestion [aria-current="page"]')?.focus();
+  }, [menuAbierto]);
+
+  function enfocarPanelOrden() {
+    window.requestAnimationFrame(() => {
+      const panel = panelOrden.current;
+      if (!panel) return;
+      panel.focus({ preventScroll: true });
+      const top = panel.getBoundingClientRect().top;
+      const header = document.querySelector('.management-topbar');
+      const visibleTop = header && getComputedStyle(header).position === 'sticky'
+        ? header.getBoundingClientRect().bottom
+        : 0;
+      if (top < visibleTop || top + 48 > window.innerHeight) {
+        window.scrollBy({ top: top - visibleTop - 16 });
+      }
+    });
+  }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { canWrite, canCreate, canDelete } = permissionsFor(session.roles);
@@ -53,6 +74,7 @@ export default function App({ session }: AppProps) {
     setError('');
     setView(destino === 'new-order' ? 'orders' : destino);
     setFormMode(destino === 'new-order' ? 'create' : null);
+    if (destino === 'new-order') enfocarPanelOrden();
     const ruta = destino === 'dashboard' ? '/dashboard' : `/dashboard/${destino === 'new-order' ? 'orders' : destino}`;
     if (window.location.pathname !== ruta) window.history.pushState(null, '', ruta);
   }
@@ -130,6 +152,7 @@ export default function App({ session }: AppProps) {
   function selectOrder(order: Order) {
     setSelected(order);
     setFormMode(null);
+    enfocarPanelOrden();
   }
 
   return (
@@ -181,7 +204,7 @@ export default function App({ session }: AppProps) {
           <OrderList orders={orders} loading={loading} selectedId={selected?.id} onSelect={selectOrder} />
         </section>
 
-        <aside className="panel side">
+        <aside className="panel side" ref={panelOrden} tabIndex={-1} aria-label="Detalle de la orden">
           {formMode === 'create' && canCreate ? (
             <OrderForm
               key="create"

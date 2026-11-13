@@ -92,12 +92,12 @@ export default function ProductsPage() {
     </form>
     {loading && <p className="empty">Cargando productos…</p>}
     {!loading && !errorCarga && products.length === 0 && <div className="products-empty"><h2>No hay productos registrados</h2><p>Agrega el primer repuesto con el formulario superior.</p></div>}
-    {products.length > 0 && <div className="table-wrap" role="region" aria-label="Listado de productos" tabIndex={0}><table><thead><tr><th>ID</th><th>Producto</th><th>Stock</th><th>Precio</th><th>Estado</th><th>Acción</th></tr></thead>
-      <tbody>{products.map((product) => <tr key={product.id}>
-        <td>#{product.id}</td><td>{product.name}<small> · {product.categoriaNombre||'General'}</small></td>
-        <td>{product.stock}{product.active && product.stock <= 5 && <small className="stock-bajo">Stock bajo</small>}</td>
-        <td>{formatMoney(product.price)}</td><td>{!product.active ? 'Deshabilitado' : product.categoriaActiva === false ? 'Categoría deshabilitada' : product.available ? 'Disponible' : 'Sin stock'}</td>
-        <td><div className="actions"><button className="btn ghost small" type="button" onClick={() => edit(product)}>Editar</button>
+    {products.length > 0 && <div className="table-wrap table-wrap--responsive" role="region" aria-label="Listado de productos" tabIndex={0}><table role="table"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col">ID</th><th role="columnheader" scope="col">Producto</th><th role="columnheader" scope="col">Stock</th><th role="columnheader" scope="col">Precio</th><th role="columnheader" scope="col">Estado</th><th role="columnheader" scope="col">Acción</th></tr></thead>
+      <tbody role="rowgroup">{products.map((product) => <tr role="row" key={product.id}>
+        <td role="cell" data-label="ID">#{product.id}</td><td role="cell" data-label="Producto">{product.name}<small> · {product.categoriaNombre||'General'}</small></td>
+        <td role="cell" data-label="Stock">{product.stock}{product.active && product.stock <= 5 && <small className="stock-bajo">Stock bajo</small>}</td>
+        <td role="cell" data-label="Precio">{formatMoney(product.price)}</td><td role="cell" data-label="Estado">{!product.active ? 'Deshabilitado' : product.categoriaActiva === false ? 'Categoría deshabilitada' : product.available ? 'Disponible' : 'Sin stock'}</td>
+        <td role="cell" data-label="Acciones"><div className="actions"><button className="btn ghost small" type="button" onClick={() => edit(product)}>Editar</button>
           <button className={`btn ${product.active ? 'danger-ghost' : 'primary'} small`} type="button" disabled={saving || cambiandoEstado !== null} onClick={() => void cambiarEstado(product)}>{cambiandoEstado === product.id ? 'Actualizando…' : product.active ? 'Deshabilitar' : 'Habilitar'}</button>
         </div></td>
       </tr>)}</tbody></table></div>}

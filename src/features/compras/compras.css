@@ -17,3 +17,21 @@
 .registro-campos { display: grid; gap: 1.25rem; min-width: 0; }
 .registro-campos input { min-height: 44px; }
 .registro-form > p, .registro-form form p { line-height: 1.65; margin: 0; }
+
+.tienda-acciones { display: flex; flex-wrap: wrap; gap: .75rem; }
+.tienda .carrito-acceso { display: none; }
+.tienda .btn { min-height: 44px; }
+.carrito { scroll-margin-top: 1rem; }
+.carrito-item { grid-template-columns: minmax(0, 1fr) auto; }
+.carrito-item .btn { justify-self: start; }
+.producto-categoria { overflow-wrap: anywhere; max-width: 100%; }
+.tienda-filtros label, .tienda-filtros input, .tienda-filtros select { min-width: 0; }
+
+@media (max-width: 1000px) {
+  .tienda-layout { grid-template-columns: minmax(0, 1fr); }
+  .tienda .carrito-acceso { display: inline-flex; }
+}
+@media (max-width: 550px) {
+  .carrito-item, .tienda-filtros, .pedidos-lista { grid-template-columns: minmax(0, 1fr); }
+  .tienda input, .tienda select { font-size: 1rem; }
+}
