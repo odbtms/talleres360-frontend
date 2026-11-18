@@ -1,18 +1,36 @@
 import { useState, type FormEvent } from 'react';
 import { formatDate, formatMinutes, formatMoney } from '../../../utils/format';
 import { useReporteVentas } from '../hooks/useReporteVentas';
-import { fechaParaInput, fechaParaVista } from '../utils/fechasReporte';
+import { fechaParaVista, fechasParaPeriodo, type PeriodoReporte, type RangoReporte } from '../utils/fechasReporte';
 import { LeadTimeChartComponent, SalesChartComponent, TopProductsChartComponent } from '../components/GraficosKpis';
 import './reportes-kpis.css';
 
+const PERIODOS: ReadonlyArray<{ periodo: PeriodoReporte; etiqueta: string }> = [
+  { periodo: 'dia', etiqueta: 'Hoy' },
+  { periodo: 'semana', etiqueta: 'Esta semana' },
+  { periodo: 'mes', etiqueta: 'Este mes' },
+];
+
 export default function ReportesPage({ onOpenAudit }: { onOpenAudit: () => void }) {
-  const [desde, setDesde] = useState(() => fechaParaInput(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
-  const [hasta, setHasta] = useState(() => fechaParaInput(new Date()));
-  const { resultado, cargando, error, errorFechas, generarReporte } = useReporteVentas(desde, hasta);
+  const [fechas, setFechas] = useState(() => fechasParaPeriodo('mes'));
+  const [periodo, setPeriodo] = useState<PeriodoReporte | null>('mes');
+  const { resultado, cargando, error, errorFechas, generarReporte } = useReporteVentas(fechas.desde, fechas.hasta);
+
+  function elegirPeriodo(nuevoPeriodo: PeriodoReporte) {
+    const rango = fechasParaPeriodo(nuevoPeriodo);
+    setFechas(rango);
+    setPeriodo(nuevoPeriodo);
+    generarReporte(rango.desde, rango.hasta);
+  }
+
+  function editarFecha(campo: keyof RangoReporte, valor: string) {
+    setFechas(actual => ({ ...actual, [campo]: valor }));
+    setPeriodo(null);
+  }
 
   function enviar(evento: FormEvent<HTMLFormElement>): void {
     evento.preventDefault();
-    generarReporte(desde, hasta);
+    generarReporte(fechas.desde, fechas.hasta);
   }
 
   return (
@@ -25,8 +43,16 @@ export default function ReportesPage({ onOpenAudit }: { onOpenAudit: () => void 
         <button className="btn ghost" type="button" onClick={onOpenAudit}>Ver tiempos por pedido</button>
       </header>
       <form className="panel reports-filters" onSubmit={enviar}>
-        <label>Desde<input type="date" required value={desde} disabled={cargando} onChange={(evento) => setDesde(evento.target.value)} /></label>
-        <label>Hasta<input type="date" required min={desde || undefined} value={hasta} disabled={cargando} onChange={(evento) => setHasta(evento.target.value)} /></label>
+        <div className="reportes-periodos" role="group" aria-label="Período del reporte">
+          {PERIODOS.map(opcion => (
+            <button key={opcion.periodo} className={periodo === opcion.periodo ? 'btn primary' : 'btn ghost'}
+              type="button" aria-pressed={periodo === opcion.periodo} onClick={() => elegirPeriodo(opcion.periodo)}>
+              {opcion.etiqueta}
+            </button>
+          ))}
+        </div>
+        <label>Desde<input type="date" required value={fechas.desde} disabled={cargando} onChange={(evento) => editarFecha('desde', evento.target.value)} /></label>
+        <label>Hasta<input type="date" required min={fechas.desde || undefined} value={fechas.hasta} disabled={cargando} onChange={(evento) => editarFecha('hasta', evento.target.value)} /></label>
         <button className="btn primary" type="submit" disabled={cargando}>{cargando ? 'Consultando…' : 'Aplicar fechas'}</button>
       </form>
       {errorFechas && <p className="alert" role="alert">{errorFechas}</p>}

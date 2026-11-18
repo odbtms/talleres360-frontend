@@ -3,6 +3,8 @@ export interface RangoReporte {
   hasta: string;
 }
 
+export type PeriodoReporte = 'dia' | 'semana' | 'mes';
+
 const fechaVista = new Intl.DateTimeFormat('es-CL', { dateStyle: 'short', timeZone: 'UTC' });
 
 export function fechaParaVista(fecha: string): string {
@@ -11,6 +13,13 @@ export function fechaParaVista(fecha: string): string {
 
 export function fechaParaInput(fecha: Date): string {
   return [fecha.getFullYear(), String(fecha.getMonth() + 1).padStart(2, '0'), String(fecha.getDate()).padStart(2, '0')].join('-');
+}
+
+export function fechasParaPeriodo(periodo: PeriodoReporte, hoy = new Date()): RangoReporte {
+  const inicio = new Date(hoy);
+  if (periodo === 'semana') inicio.setDate(hoy.getDate() - (hoy.getDay() + 6) % 7);
+  if (periodo === 'mes') inicio.setDate(1);
+  return { desde: fechaParaInput(inicio), hasta: fechaParaInput(hoy) };
 }
 
 function fechaLocal(valor: string): Date {
