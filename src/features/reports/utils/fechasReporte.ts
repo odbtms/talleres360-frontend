@@ -3,6 +3,12 @@ export interface RangoReporte {
   hasta: string;
 }
 
+const fechaVista = new Intl.DateTimeFormat('es-CL', { dateStyle: 'short', timeZone: 'UTC' });
+
+export function fechaParaVista(fecha: string): string {
+  return fechaVista.format(new Date(`${fecha}T00:00:00Z`));
+}
+
 export function fechaParaInput(fecha: Date): string {
   return [fecha.getFullYear(), String(fecha.getMonth() + 1).padStart(2, '0'), String(fecha.getDate()).padStart(2, '0')].join('-');
 }

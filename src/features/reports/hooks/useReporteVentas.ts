@@ -1,56 +1,64 @@
-import { useEffect, useRef, useState } from 'react';
-import { reportsApi, type SalesReport } from '../../../api/reportsApi';
+import { useEffect, useState } from 'react';
+import { reportsApi, type ReporteKpis } from '../../../api/reportsApi';
 import { rangoParaApi, type RangoReporte } from '../utils/fechasReporte';
 
 interface ResultadoReporte {
-  datos: SalesReport;
+  datos: ReporteKpis;
   desde: string;
   hasta: string;
   generadoEn: string;
 }
 
-interface EstadoReporteVentas {
-  resultado: ResultadoReporte | null;
-  cargando: boolean;
-  error: string;
-  generarReporte: (desde: string, hasta: string) => Promise<void>;
+interface ConsultaReporte {
+  rango: RangoReporte;
+  desde: string;
+  hasta: string;
 }
 
-export function useReporteVentas(): EstadoReporteVentas {
+export function useReporteVentas(desdeInicial: string, hastaInicial: string) {
+  const [consulta, setConsulta] = useState<ConsultaReporte>(() => ({
+    rango: rangoParaApi(desdeInicial, hastaInicial), desde: desdeInicial, hasta: hastaInicial,
+  }));
   const [resultado, setResultado] = useState<ResultadoReporte | null>(null);
-  const [cargando, setCargando] = useState(false);
+  const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const activo = useRef(true);
-  const enCurso = useRef(false);
+  const [errorFechas, setErrorFechas] = useState('');
 
   useEffect(() => {
-    activo.current = true;
-    return () => { activo.current = false; };
-  }, []);
-
-  async function generarReporte(desde: string, hasta: string): Promise<void> {
-    if (enCurso.current) return;
-    setError('');
-    setResultado(null);
-    let rango: RangoReporte;
-    try {
-      rango = rangoParaApi(desde, hasta);
-    } catch (problema: unknown) {
-      setError(problema instanceof Error ? problema.message : 'Revisa las fechas del reporte.');
-      return;
+    const controller = new AbortController();
+    let siguiente: number | undefined;
+    const { rango, desde, hasta } = consulta;
+    async function actualizar() {
+      try {
+        const datos = await reportsApi.kpis(rango.desde, rango.hasta, controller.signal);
+        if (controller.signal.aborted) return;
+        setResultado({ datos, desde, hasta, generadoEn: new Date().toISOString() });
+        setError('');
+      } catch {
+        if (!controller.signal.aborted) setError('No pudimos actualizar los indicadores de ventas.');
+      } finally {
+        if (!controller.signal.aborted) {
+          setCargando(false);
+          siguiente = window.setTimeout(() => void actualizar(), 10000);
+        }
+      }
     }
-    enCurso.current = true;
-    setCargando(true);
+    void actualizar();
+    return () => { controller.abort(); window.clearTimeout(siguiente); };
+  }, [consulta]);
+
+  function generarReporte(desde: string, hasta: string) {
     try {
-      const datos = await reportsApi.sales(rango.desde, rango.hasta);
-      if (activo.current) setResultado({ datos, desde, hasta, generadoEn: new Date().toISOString() });
-    } catch {
-      if (activo.current) setError('No pudimos generar el reporte. Inténtalo nuevamente.');
-    } finally {
-      enCurso.current = false;
-      if (activo.current) setCargando(false);
+      const rango = rangoParaApi(desde, hasta);
+      setErrorFechas('');
+      setError('');
+      setResultado(null);
+      setCargando(true);
+      setConsulta({ rango, desde, hasta });
+    } catch (problema) {
+      setErrorFechas(problema instanceof Error ? problema.message : 'Revisa las fechas del reporte.');
     }
   }
 
-  return { resultado, cargando, error, generarReporte };
+  return { resultado, cargando, error, errorFechas, generarReporte };
 }

@@ -1,0 +1,67 @@
+.reports-metrics.kpi-resumen {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.kpi-resumen small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.kpi-graficos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.kpi-chart {
+  min-width: 0;
+}
+
+.kpi-chart h2 {
+  margin: 0 0 16px;
+  font-size: 1.125rem;
+}
+
+.kpi-chart__serie {
+  display: grid;
+  gap: 14px;
+  max-height: 370px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0 6px 0 0;
+  margin: 0;
+}
+
+.kpi-chart__serie li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 8px;
+  font-size: .875rem;
+  overflow-wrap: anywhere;
+}
+
+.kpi-chart__serie strong {
+  color: var(--text);
+  text-align: right;
+}
+
+.kpi-chart__pista {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  height: 8px;
+  border-radius: 8px;
+  background: var(--border);
+}
+
+.kpi-chart__pista > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+@media (max-width: 700px) {
+  .reports-metrics.kpi-resumen { grid-template-columns: 1fr; }
+}

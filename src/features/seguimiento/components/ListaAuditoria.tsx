@@ -1,12 +1,7 @@
 import { formatDate, formatMoney } from '../../../utils/format';
 import { EVENTOS } from '../constants';
+import type { EventoAuditoria } from '../types';
 import '../auditoria.css';
-
-interface Evento {
-  eventId: string; orderId: number; type: string; actor: string;
-  occurredAt: string; status: string; total: number;
-  reason?: string | null; source?: string;
-}
 
 const ESTADOS: Readonly<Record<string, string>> = {
   RECIBIDA: 'Recibida', ACEPTADA: 'Aceptada', EN_REPARACION: 'En reparación', EN_PREPARACION: 'En preparación',
@@ -14,7 +9,7 @@ const ESTADOS: Readonly<Record<string, string>> = {
 };
 
 /** El resumen evita duplicar el estado; los datos completos siguen disponibles por evento. */
-export default function ListaAuditoria({ eventos }: { eventos: readonly Evento[] }) {
+export default function ListaAuditoria({ eventos }: { eventos: readonly EventoAuditoria[] }) {
   return <ol className="auditoria-lista">{eventos.map(evento => <li key={evento.eventId}>
     <details className="auditoria-evento">
       <summary>
@@ -32,6 +27,7 @@ export default function ListaAuditoria({ eventos }: { eventos: readonly Evento[]
         <dt>ID del evento</dt><dd>{evento.eventId}</dd>
         <dt>Tipo registrado</dt><dd>{evento.type}</dd>
         {evento.source && <><dt>Origen</dt><dd>{evento.source}</dd></>}
+        {evento.correlationId && <><dt>ID de correlación</dt><dd>{evento.correlationId}</dd></>}
       </dl>
     </details>
   </li>)}</ol>;
