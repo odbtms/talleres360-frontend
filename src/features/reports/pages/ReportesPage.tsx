@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import { formatDate, formatMoney } from '../../../utils/format';
+import { formatDate, formatMinutes, formatMoney } from '../../../utils/format';
 import { useReporteVentas } from '../hooks/useReporteVentas';
 import { fechaParaInput, fechaParaVista } from '../utils/fechasReporte';
-import { formatoTiempo, LeadTimeChartComponent, SalesChartComponent, TopProductsChartComponent } from '../components/GraficosKpis';
+import { LeadTimeChartComponent, SalesChartComponent, TopProductsChartComponent } from '../components/GraficosKpis';
 import './reportes-kpis.css';
 
-export default function ReportesPage() {
+export default function ReportesPage({ onOpenAudit }: { onOpenAudit: () => void }) {
   const [desde, setDesde] = useState(() => fechaParaInput(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
   const [hasta, setHasta] = useState(() => fechaParaInput(new Date()));
   const { resultado, cargando, error, errorFechas, generarReporte } = useReporteVentas(desde, hasta);
@@ -17,9 +17,12 @@ export default function ReportesPage() {
 
   return (
     <main className="reports-page" aria-busy={cargando}>
-      <header className="management-page-heading">
-        <h1>Reportería y KPIs</h1>
-        <p>Indicadores de pedidos entregados, actualizados cada 10 segundos a partir de los eventos procesados.</p>
+      <header className="management-page-heading reportes-kpis-encabezado">
+        <div>
+          <h1>Reportería y KPIs</h1>
+          <p>Indicadores de pedidos entregados, actualizados cada 10 segundos a partir de los eventos procesados.</p>
+        </div>
+        <button className="btn ghost" type="button" onClick={onOpenAudit}>Ver tiempos por pedido</button>
       </header>
       <form className="panel reports-filters" onSubmit={enviar}>
         <label>Desde<input type="date" required value={desde} disabled={cargando} onChange={(evento) => setDesde(evento.target.value)} /></label>
@@ -38,7 +41,7 @@ export default function ReportesPage() {
             <dl className="reports-metrics kpi-resumen">
               <div><dt>Ventas</dt><dd>{formatMoney(resultado.datos.resumen.revenue)}</dd></div>
               <div><dt>Pedidos entregados</dt><dd>{resultado.datos.resumen.deliveredOrders}</dd></div>
-              <div><dt>Tiempo medio de entrega</dt><dd>{formatoTiempo(resultado.datos.promedioMinutos)}</dd>
+              <div><dt>Tiempo medio de entrega</dt><dd>{formatMinutes(resultado.datos.promedioMinutos)}</dd>
                 <small>Desde la creación · Entregas medidas: {resultado.datos.entregasMedidas}</small>
               </div>
             </dl>

@@ -6,6 +6,7 @@ import { usePagina } from '../hooks/usePagina';
 import type { FiltrosAuditoria, SolicitudAuditoria } from '../types';
 import ListaAuditoria from './ListaAuditoria';
 import Paginacion from './Paginacion';
+import TiemposSolicitud from './TiemposSolicitud';
 
 function HistorialSolicitud({ orderId, filtros }: { orderId: number; filtros: FiltrosAuditoria }) {
   const [pagina, setPagina] = useState(0);
@@ -17,6 +18,7 @@ function HistorialSolicitud({ orderId, filtros }: { orderId: number; filtros: Fi
   [orderId, criterios, pagina]);
   const { datos, cargando, error, actualizar } = usePagina(cargar, 'No pudimos cargar el historial de esta solicitud.');
   return <div className="auditoria-historial" aria-busy={cargando}>
+    <TiemposSolicitud orderId={orderId} />
     {hayFiltros && <button className="btn ghost auditoria-ver-todo" type="button"
       aria-pressed={historialCompleto} onClick={() => { setHistorialCompleto(valor => !valor); setPagina(0); }}>
       {historialCompleto ? 'Aplicar filtros de nuevo' : 'Ver historial completo del pedido'}

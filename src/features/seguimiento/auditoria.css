@@ -25,6 +25,12 @@
 .auditoria-historial { padding: .25rem 1rem 1rem; border-top: 1px solid var(--border); }
 .auditoria-modos { display: flex; flex-wrap: wrap; gap: .5rem; }
 .auditoria-ver-todo { margin-block: .75rem; }
+.auditoria-tiempos { margin-block: .75rem; padding: .875rem 1rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--bg); }
+.auditoria-tiempos h3 { margin: 0 0 .5rem; font-size: 1rem; }
+.auditoria-tiempos p { margin: 0 0 .5rem; }
+.auditoria-tiempos dl { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; margin: .75rem 0 0; }
+.auditoria-tiempos dd { margin: .25rem 0 0; }
+.auditoria-tiempos dd time { color: var(--muted); font-size: .85rem; }
 @media (max-width: 600px) {
   .auditoria-solicitud > summary { flex-wrap: wrap; gap: .75rem; }
   .auditoria-solicitud > summary .auditoria-resumen { flex-basis: 100%; }

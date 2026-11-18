@@ -26,8 +26,8 @@ export const seguimientoApi = {
     if (opciones.generales) query.set('generales', 'true');
     return request(`/api/notifications?${query}`, { signal });
   },
-  auditoria(filtros: FiltrosAuditoria, page: number, signal: AbortSignal): Promise<Pagina<EventoAuditoria>> {
-    const query = parametrosAuditoria(filtros, page, 10);
+  auditoria(filtros: FiltrosAuditoria, page: number, signal: AbortSignal, size = 10): Promise<Pagina<EventoAuditoria>> {
+    const query = parametrosAuditoria(filtros, page, size);
     return request(`/api/audit?${query}`, { signal });
   },
 };

@@ -196,7 +196,7 @@ export default function App({ session }: AppProps) {
       {view === 'dashboard' ? session.roles.includes('Admin') ? <AdminDashboard onOpenOrders={() => navegar('orders')} onOpenProducts={() => navegar('products')} onOpenReports={() => navegar('reports')} /> : <OperatorDashboard onOpenOrders={() => navegar('orders')} onOpenNotifications={() => navegar('notifications')} />
         : view === 'products' ? <ProductsPage />
         : view === 'registros' ? <RegistrosPage />
-        : view === 'reports' ? <ReportesPage />
+        : view === 'reports' ? <ReportesPage onOpenAudit={() => navegar('audit')} />
         : view === 'notifications' ? <NotificacionesPage session={session} />
         : view === 'audit' ? <AuditoriaPage session={session} /> : <main className="layout">
         <section className="panel">

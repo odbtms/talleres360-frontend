@@ -1,3 +1,11 @@
+.reportes-kpis-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .reports-metrics.kpi-resumen {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
